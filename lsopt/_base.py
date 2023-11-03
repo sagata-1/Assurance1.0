@@ -1387,6 +1387,11 @@ def _check_configure_solver(solver, return_config=True, **kwargs):
 
     # ========= Configure the solver ==============
     if return_config:
+        # options = {
+        # "WLSACCESSID": "771cf617-1e29-4f9c-a795-186377168982", 
+        # "WLSSECRET":"d299a0e0-350e-4824-8aeb-9081ac97677a",
+        # "LICENSEID": 2433923
+        # }
         solver_configured = pyo.SolverFactory(solver)
 
         # ==== Configure other options for the solver="glpk" =======
@@ -1440,6 +1445,7 @@ def _check_configure_solver(solver, return_config=True, **kwargs):
             # solver_configured.options['NoRelHeurTime'] = 30
 
             # Set cuts
+
             if mip_cuts:
                 if mip_cuts == 'auto':
                     solver_configured.options['Cuts'] = -1
