@@ -44,5 +44,5 @@ This is the best old result, with the 48 Fraud cases identified.
 
 All the notebooks should have explanation with the code to make them more readable.
 
-## Some instructioNS for GLPK installation
+## Some instructioNs for GLPK installation
 On top of doing a pip install of GLPK, you should also do an install using your device's package manager. I'm not sure if Windows has an equivalent, but Mac uses homebrew (which I believe is now available for windows). I believe windows has winget, and Chocolatey. The command for Homebrew that I use is `brew install glpk`. The appropriate tuning of the hyperparameters for GLTK is what I did in the notebook.
