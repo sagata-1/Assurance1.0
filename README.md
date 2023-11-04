@@ -14,7 +14,7 @@ and if you want to see the old code
 This is the main one, it contains my implementation of the GA with XGBoost, which ended up selecting 35 features, and doesn't work too well (can't find any solution within an hour timeframe).
 
 ### old_and_glpk.ipynb
-Thus is the same algorithm that was used with Gurobi, where XGBoost was used to select the important features, but applied to GLTK, with appropriate paramter adjustments. This one does find a solution, as there aren't too many solutions, but its the heuristic one, where everything is taken to be "Not-Fraud".
+This is the same algorithm that was used with Gurobi, where XGBoost was used to select the important features, but applied to GLTK, with appropriate paramter adjustments. This one does find a solution, as there aren't too many solutions, but its the heuristic one, where everything is taken to be "Not-Fraud".
 
 
 ### old.ipynb
@@ -23,8 +23,8 @@ This is just the original notebook, where everything is as it was with Gurobi
 ### optimal_tree_fraud.png
 This is the result from the most recent run (which is from old_and_glpk.ipynb, as XGBoost_and_GA.ipynb hasn't found a good result).
 
-### optimal_tree_fraud_1.png
-This is the best old result, with the 41 Fraud cases identified.
+### best_optimal_tree_fraud.png
+This is the best old result, with the 48 Fraud cases identified.
 
 All the notebooks should have explanation with the code to make them more readable.
 
