@@ -1,0 +1,9 @@
+hyperparams: 
+max_depth = 3
+min_samples_leaf = 10
+alpha = 0.00005 # Affects number of splits
+time_limit = 25 # minute
+mip_gap_tol = 0.01  # optimal gap percentage
+mip_focus = 'balance'
+mip_polish_time = None
+warm_start = False
