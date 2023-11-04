@@ -1,0 +1,34 @@
+- Step_1: Initialization of the population.
+Explanation: The idea behind is this is what each chromosome in the population should represent. In the case of feature selection,
+a single chromosome was essentially just a boolean array, with indices of the array matching the columns indices in the dataframe, with True indicating that the feature was
+used and False indicating that it wasn't. In the current function, I plan to have each chromosome be a dictionary, where the keys are the hyperparameters and their values 
+are the hyperparameter values. Then, the initialized population will be an array of dictionaries, each element of the array representing a particular chromosome.
+
+- Step 2: This step is perhaps the most important part of the algorithm, which is the fitness function. 
+Explanation: Basically, here I will loop through the population, and initialize a new BNP-OCT object each time, with the appropriate hyperparameter sequence, as represented
+by the array element we are at. The model will then be fitted to the data, and a classification report generated, with a focus on sensitivity (proportion of fraud cases identified)
+and precision (proportion of non-fraud cases identified). (An alternative would be a pure accuracy report, which may be needed to reduce training time, but it is defintely not as accurate as the other two measures.)
+I would append that to a fitness scores array, mapping onto the dictionary elements associated with it. (The array would be arranged from best to worst).
+
+- Step 3: Selection
+Explanation: This step is essentially just selecting the best parents from each generation, which I would do by just looping through the popultation, and selecting
+the best parents, i.e. since the population would be sorted at this point, just selecting the appropriate dictionaries.
+
+- Step 4: Crossover
+Explanation: Here, I would just be recombining the hyperparams of half of each in order to produce a parent for the next generation.
+
+- Step 5: Mutation
+Explanation: Here, I would allow some of the hyperparameters to randomly be associated with a value from the initial population range.
+
+- Step 6: Generation
+Explanation: Notably, at the end of every loop, I'd select the best dicionary from the generation, and store it in an array. The final result would therefore be an array of dictionaries,
+where each element represents the best hyperparameter combination for that generation of the GA (i.e. each element would be a dicitonary of hyperparams and their values).
+
+- Step 7: Input into BNP-OCT
+Explanation: Finally, using the best generation's hyperparameters, I'd do a final training and run sequence on BNP-OCT, and see the output
+
+Possible fluid decisions:
+The hyperparameter that I'll definitely have to figure out as I use will be time, as it may be necessary to hold it fixed for every possible chromosome of the GA, as we may otherwise and up with an
+absurdly long training run.
+
+Estimated time for a single training run: 1 and a half to two hours, depending on how many possible hyperparams I want to consider.
