@@ -9,7 +9,9 @@ The main files to look at for today are:
 - `hyper.txt`
 - `best_optimal_tree_fraud.png`
 - `optimal_tree_fraud.png`
+
 and if you want to see the old code
+
 - `old.ipynb`   
 - `old_and_glpk.ipynb`
 - `optimal_tree_fraud_1.png`
