@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>DASHMIN - Bootstrap Admin Template</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta content="" name="keywords">
+    <meta content="" name="description">
+
+    <!-- Favicon -->
+    <link href="img/favicon.ico" rel="icon">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Icon Font Stylesheet -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Libraries Stylesheet -->
+    <link href="static/lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
+    <link href="static/lib/tempusdominus/css/tempusdominus-bootstrap-4.min.css" rel="stylesheet" />
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="static/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Template Stylesheet -->
+    <link href="static/css/style.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container-fluid position-relative bg-white d-flex p-0">
+        <!-- Spinner Start -->
+        <div id="spinner"
+            class="show bg-white position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center">
+            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+                <span class="sr-only">Loading...</span>
+            </div>
+        </div>
+        <!-- Spinner End -->
+
+
+        <!-- Sidebar Start -->
+        <div class="sidebar pe-4 pb-3">
+            <nav class="navbar bg-light navbar-light">
+                <a href="dashboard.html" class="navbar-brand mx-4 mb-3">
+                    <h3 class="text-primary"><i class="fa fa-hashtag me-2"></i>DASHMIN</h3>
+                </a>
+                <div class="d-flex align-items-center ms-4 mb-4">
+                    <div class="position-relative">
+                        <img class="rounded-circle" src="static/img/user.jpg" alt="" style="width: 40px; height: 40px;">
+                        <div
+                            class="bg-success rounded-circle border border-2 border-white position-absolute end-0 bottom-0 p-1">
+                        </div>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="mb-0">Jhon Doe</h6>
+                        <span>Admin</span>
+                    </div>
+                </div>
+                <div class="navbar-nav w-100">
+                    <a href="dashboard.html" class="nav-item nav-link active"><i
+                            class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
+                    <div class="nav-item dropdown">
+                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><i
+                                class="fa fa-laptop me-2"></i>Elements</a>
+                        <div class="dropdown-menu bg-transparent border-0">
+                            <a href="button.html" class="dropdown-item">Buttons</a>
+                            <a href="typography.html" class="dropdown-item">Typography</a>
+                            <a href="element.html" class="dropdown-item">Other Elements</a>
+                        </div>
+                    </div>
+                    <a href="widget.html" class="nav-item nav-link"><i class="fa fa-th me-2"></i>Widgets</a>
+                    <a href="form.html" class="nav-item nav-link"><i class="fa fa-keyboard me-2"></i>Forms</a>
+                    <a href="table.html" class="nav-item nav-link"><i class="fa fa-table me-2"></i>Tables</a>
+                    <a href="chart.html" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Charts</a>
+                    <div class="nav-item dropdown">
+                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><i
+                                class="far fa-file-alt me-2"></i>Pages</a>
+                        <div class="dropdown-menu bg-transparent border-0">
+                            <a href="signin.html" class="dropdown-item">Sign In</a>
+                            <a href="index.html" class="dropdown-item">Sign Up</a>
+                            <a href="404.html" class="dropdown-item">404 Error</a>
+                            <a href="blank.html" class="dropdown-item">Blank Page</a>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        </div>
+        <!-- Sidebar End -->
+
+
+        <!-- Content Start -->
+        <div class="content">
+            <!-- Navbar Start -->
+            <nav class="navbar navbar-expand bg-light navbar-light sticky-top px-4 py-0 shadow">
+                <div>
+                    <a href="dashboard.html" class="me-4">
+                        <img src="static/img/Logo.png" style="width: 25%;"/>
+                    </a>
+                    <a href="dashboard.html" class="flex-shrink-0" style="color: #25476A;">
+                        Dashboard
+                    </a>
+                </div>
+                <form class="d-none d-md-flex ms-4 mr-3" style="margin-right: 30px;">
+                    <input class="form-control border-0" type="search" placeholder="Search" style="background-color: #F3F6F9;">
+                </form>
+                <div class="navbar-nav align-items-center ms-auto ml-5">
+                    <!-- <button type="button" class="btn btn-sm btn-primary d-flex align-items-center"> 
+                        <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 640 512" fill="#fff" class="pr-3" style="margin-right: 5px;">
+                            <path d="M144 480C64.5 480 0 415.5 0 336c0-62.8 40.2-116.2 96.2-135.9c-.1-2.7-.2-5.4-.2-8.1c0-88.4 71.6-160 160-160c59.3 0 111 32.2 138.7 80.2C409.9 102 428.3 96 448 96c53 0 96 43 96 96c0 12.2-2.3 23.8-6.4 34.6C596 238.4 640 290.1 640 352c0 70.7-57.3 128-128 128H144zm79-217c-9.4 9.4-9.4 24.6 0 33.9s24.6 9.4 33.9 0l39-39V392c0 13.3 10.7 24 24 24s24-10.7 24-24V257.9l39 39c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-80-80c-9.4-9.4-24.6-9.4-33.9 0l-80 80z"/>
+                        </svg>  
+                         upload 
+                    </button> -->
+                    <div class="nav-item dropdown">
+                        <a href="#" class="nav-link dropdown-toggle d-flex " data-bs-toggle="dropdown">
+                            <img class="rounded-circle me-lg-2" src="static/img/user.jpg" alt="" style="width: 40px; height: 40px;">
+                            <div class="d-flex flex-column">
+                                <span class="d-none d-lg-inline-flex">John Doe</span>
+                                <p class="d-none d-lg-inline-flex text-muted mb-0">uxeasin@gmail.com</p>
+                            </div>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end bg-light border-0 rounded-0 rounded-bottom m-0">
+                            <a href="index.html" class="dropdown-item">Log Out</a>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+            <!-- Navbar End -->
+
+            <!-- Sales Chart Start -->
+            <div class="container-fluid pt-4 px-4">
+                <div class="row g-4">
+                    <div class="col-sm-12 col-xl-12">
+                        <div class="bg-light text-center rounded p-4 shadow">
+                            <div class="d-flex align-items-center justify-content-between mb-4">
+                                <h6 class="mb-0">Optimal triggers and threshold values in inpatient data to find wasteful health insurance claims</h6>
+                            </div>
+                            <div class="w-100 d-flex justify-content-center">
+                                <div>
+                                    <img class="img-fluid" src="static/img/optimal_tree_fraud.png" class="h-100"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Sales Chart End -->
+            <div class="container-fluid pt-4 px-4">
+                <div class="row g-4">
+                    <div class="col-sm-12 col-xl-12">
+                        <div class="bg-light rounded p-4 shadow d-flex justify-content-between">
+                            <div class="col-sm-12 align-items-center justify-content-center text-center">
+                                    <form action="/dataset1report" method="post" enctype="multipart/form-data">
+                                        <div class="mb-3">
+                                            <label for="image" class="form-label">Upload Your Data</label>
+                                            <input type="file" name="image" class="form-control" id="image" />
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">Find Fraud, Waste and Abuse</button>
+                                    </form>
+                                    <br>
+                                    <a href="/dataset"><button class="btn btn-primary">Retrain Model</button></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            <!-- Recent Sales Start -->
+            <div class="container-fluid pt-4 pb-5 px-4">
+                <div class="bg-light text-center rounded p-4 shadow">
+                    <div class="table-responsive">
+                        <table class="table text-start align-middle table-striped table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th scope="col"><input class="form-check-input" type="checkbox"></th>
+                                    <th scope="col">BeneID</th>
+                                    <th scope="col">ClaimID</th>
+                                    <th scope="col">ClaimStartDt</th>
+                                    <th scope="col">ClaimEndDt</th>
+                                    <th scope="col">Provider</th>
+                                    <th scope="col" class="text-center">InscClaimAmtReimbursed</th>
+                                    <th scope="col" class="text-center">Fraud / Non Fraud</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><input class="form-check-input" type="checkbox"></td>
+                                    <td>BENE11001</td>
+                                    <td>CLM392397</td>
+                                    <td>2009-06-02</td>
+                                    <td>2009-06-02</td>
+                                    <td>PRV55962</td>
+                                    <td class="text-center">
+                                        39
+                                    </td>
+                                    <td class="text-center">
+                                        <button type="button" class="btn" style="background-color: #25476A; color: #fff;">Yes</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><input class="form-check-input" type="checkbox"></td>
+                                    <td>BENE12003</td>
+                                    <td>CLM192017</td>
+                                    <td>2009-02-02</td>
+                                    <td>2009-02-02</td>
+                                    <td>PRV55962</td>
+                                    <td class="text-center">
+                                        29
+                                    </td>
+                                    <td class="text-center">
+                                        <button type="button" class="btn" style="background-color: #FA9F1B; color: #fff;">No</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><input class="form-check-input" type="checkbox"></td>
+                                    <td>BENE11012</td>
+                                    <td>CLM292302</td>
+                                    <td>2009-05-02</td>
+                                    <td>2009-05-02</td>
+                                    <td>PRV55962</td>
+                                    <td class="text-center">
+                                       24
+                                    </td>
+                                    <td class="text-center">
+                                        <button type="button" class="btn" style="background-color: #FA9F1B; color: #fff;">No</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><input class="form-check-input" type="checkbox"></td>
+                                    <td>BENE11034</td>
+                                    <td>CLM332309</td>
+                                    <td>2009-07-02</td>
+                                    <td>2009-07-02</td>
+                                    <td>PRV55962</td>
+                                    <td class="text-center">
+                                        25
+                                    </td>
+                                    <td class="text-center">
+                                        <button type="button" class="btn" style="background-color: #25476A; color: #fff;">Yes</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><input class="form-check-input" type="checkbox"></td>
+                                    <td>BENE11045</td>
+                                    <td>CLM342327</td>
+                                    <td>2009-11-02</td>
+                                    <td>2009-11-02</td>
+                                    <td>PRV55962</td>
+                                    <td class="text-center">
+                                        27
+                                    </td>
+                                    <td class="text-center">
+                                        <button type="button" class="btn" style="background-color: #FA9F1B; color: #fff;">No</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <!-- Recent Sales End -->
+            <!-- Modal -->
+            <!-- <div class="modal fade modal-dialog-centered" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    <div class="modal-body text-center">
+                      <div style="height: 250px; color: #25476A; display:flex; align-items: center; flex-direction: column; justify-content: center;">
+                        <i class="fa fa-question-circle fs-1" aria-hidden="true" disabled></i>
+                        <p class="fs-3 py-3">do you want to change another dataset...?</p>
+                       <div>
+                        <a type="button" href="dataset.html" class="btn" style="background-color: #25476A; color: #fff;">Yes</a>
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">No</button>
+                       </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div> -->
+        </div>
+        <!-- Content End -->
+
+
+        <!-- Back to Top -->
+        <!-- <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a> -->
+    </div>
+
+    <!-- JavaScript Libraries -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="static/lib/chart/chart.min.js"></script>
+    <script src="static/lib/easing/easing.min.js"></script>
+    <script src="static/lib/waypoints/waypoints.min.js"></script>
+    <script src="static/lib/owlcarousel/owl.carousel.min.js"></script>
+    <script src="static/lib/tempusdominus/js/moment.min.js"></script>
+    <script src="static/lib/tempusdominus/js/moment-timezone.min.js"></script>
+    <script src="static/lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js"></script>
+    <script src="https://cdn.anychart.com/releases/8.10.0/js/anychart-core.min.js"></script>
+    <script src="https://cdn.anychart.com/releases/8.10.0/js/anychart-pie.min.js"></script>
+
+    <!-- Template Javascript -->
+    <script src="static/js/main.js"></script>
+    <script src="static/js/decisiontree.js"></script>
+</body>
+
+</html>

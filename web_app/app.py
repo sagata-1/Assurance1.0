@@ -1,7 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, make_response, session
 from flask_session import Session
-from flask_wtf import FlaskForm
-from wtforms import SubmitField
 from numpy import loadtxt
 import pandas as pd
 from numpy import sort
