@@ -5,10 +5,10 @@ from basicGA import deterministic_ga
 # Assuming that inputData is a pandas DataFrame that contains the required data
 inputData = pd.read_csv("../data/iris.csv")
 
-# Define global variables
+# Large value, should be larger than anything objective function can hit
 large_value = 1000000000
 
-# These values will be extracted from the data source, just temporarily initialized at the moment, as dummy values
+# Global variables
 number_of_features = 4
 number_of_runs = 4
 number_of_classes = 3

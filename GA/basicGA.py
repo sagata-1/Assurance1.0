@@ -1,6 +1,6 @@
 import random
 import numpy as np
-
+# from objective import a4_function, a4_translate_to_engineering
 def deterministic_ga(number_decision_variables, number_in_population, number_of_generations, engineering_x_vector):
     # Assuming a4Function and a4TranslateToEngineering are defined elsewhere
 
@@ -23,7 +23,7 @@ def deterministic_ga(number_decision_variables, number_in_population, number_of_
         # Evaluate the current generation (fitness score)
         for i_index in range(number_in_population):
             x_vector = current_generation[i_index, :]
-            current_objective_values[i_index] = a4Function(number_decision_variables, x_vector)
+            current_objective_values[i_index] = a4_function(number_decision_variables, x_vector)
 
         # Sort the population
         sort_index = np.argsort(current_objective_values)
@@ -51,8 +51,8 @@ def deterministic_ga(number_decision_variables, number_in_population, number_of_
                     first_child[j_index] = current_generation[second_parent_index, j_index]
 
             # Tournament select the best child for the next generation
-            first_child_value = a4Function(number_decision_variables, first_child)
-            second_child_value = a4Function(number_decision_variables, second_child)
+            first_child_value = a4_function(number_decision_variables, first_child)
+            second_child_value = a4_function(number_decision_variables, second_child)
 
             if first_child_value < second_child_value:
                 next_generation[i_index, :] = first_child
@@ -65,7 +65,7 @@ def deterministic_ga(number_decision_variables, number_in_population, number_of_
     # Evaluate the last generation
     for i_index in range(number_in_population):
         x_vector = current_generation[i_index, :]
-        current_objective_values[i_index] = a4Function(number_decision_variables, x_vector)
+        current_objective_values[i_index] = a4_function(number_decision_variables, x_vector)
 
     # Sort the population
     sort_index = np.argsort(current_objective_values)
@@ -73,5 +73,5 @@ def deterministic_ga(number_decision_variables, number_in_population, number_of_
     current_objective_values = current_objective_values[sort_index]
 
     x_vector = current_generation[0, :]
-    a4TranslateToEngineering(number_decision_variables, x_vector, engineering_x_vector)
+    a4_translate_to_engineering(number_decision_variables, x_vector, engineering_x_vector)
     return current_objective_values[0]
