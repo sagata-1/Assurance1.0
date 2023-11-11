@@ -2,6 +2,10 @@ import random
 import numpy as np
 import pandas as pd
 from basicGA import deterministic_ga
+import multiprocessing as mp
+import time
+import gc
+
 # Assuming that inputData is a pandas DataFrame that contains the required data
 inputData = pd.read_csv("../data/Iris.csv")
 
@@ -48,29 +52,42 @@ def main():
     class_tree_translate_to_engineering(chromosome_length, chromosome_vec, person_tree)
     tree_model_predict(chromosome_length, chromosome_vec, person_tree, prediction_category)
     error_value = estimate_prediction_error(chromosome_length, person_tree, 0)
-    val = deterministic_ga(chromosome_length, 100, 10, person_tree)
+    val = deterministic_ga(chromosome_length, 10, 10, person_tree)
     print(person_tree)
     print(val)
 
+def parallel_estimate_prediction_error(chromosome_length, person_tree, error_value, individual_point, response_category):
+    prediction_categor = tree_model_predict(chromosome_length, individual_point, person_tree, prediction_category)
+    if prediction_categor != response_category:
+        return 1
+    return 0
 
 def estimate_prediction_error(chromosome_length, person_tree, error_value):
-    number_of_runs = len(response_categories)
-    number_of_features = feature_data.shape[1]
+    pool = mp.Pool(mp.cpu())
+    errors = pool.starmap(parallel_estimate_prediction_error, [(chromosome_length, person_tree, error_value, feature_data[i, :], response_categories[i]) for i in range(len(response_categories))])
+    pool.close()
+    pool.join()
+    print(errors)
+    return sum(errors) / len(response_categories) + (0.01 * len(number_of_nodes))
 
-    for i in range(number_of_runs):
-        individual_point = feature_data[i, :]
+# def estimate_prediction_error(chromosome_length, person_tree, error_value):
+#     number_of_runs = len(response_categories)
+#     number_of_features = feature_data.shape[1]
 
-        prediction_categor = tree_model_predict(chromosome_length, individual_point, person_tree, prediction_category)
+#     for i in range(number_of_runs):
+#         individual_point = feature_data[i, :]
 
-        if prediction_categor != response_categories[i]:
-            error_value += 1
+#         prediction_categor = tree_model_predict(chromosome_length, individual_point, person_tree, prediction_category)
 
-    # TODO, consider node complexity
-    # print(error_value)
-    # print(number_of_runs)
+#         if prediction_categor != response_categories[i]:
+#             error_value += 1
+
+#     # TODO, consider node complexity
+#     # print(error_value)
+#     # print(number_of_runs)
     
-    error_value /= (number_of_runs)
-    return error_value
+#     error_value /= (number_of_runs)
+#     return error_value
 
 def tree_model_predict(chromosome_length, individual_point, person_tree, prediction_category):
     if number_of_tree_levels == 2:
@@ -152,7 +169,7 @@ def a4_function(number_decision_variables, x_vector, class_tree_translate_to_eng
     class_tree_translate_to_engineering(number_decision_variables, x_vector, person_tree)
 
     # Part 2: Evaluate the solution.- fitness valuation
-    error_value = estimate_prediction_error(number_decision_variables, person_tree, 0)
+    error_value = estimate_prediction_error(number_decision_variables, person_tree, 0) + (0.1 * (number_decision_variables))
 
     return error_value
 
@@ -169,87 +186,94 @@ def a4_translate_from_engineering(number_decision_variables, engineering_x_vecto
     x_vector = [0] * number_decision_variables
 
     for i in range(number_decision_variables):
-        x_vector[i] = ((engineering_x_vector[i] + 1.28) / 2.56) #+ 0.01 * (len(engineering_x_vector))
+        x_vector[i] = ((engineering_x_vector[i] + 1.28) / 2.56)
 
     return x_vector
 
 
 def deterministic_ga(number_decision_variables, number_in_population, number_of_generations, engineering_x_vector):
     # Assuming a4Function and a4TranslateToEngineering are defined elsewhere
+    max_val = 0
+    for _ in range(1):
+        # Define the scalar variables
+        e_elitist = int(0.1 * number_in_population)
+        m_immigrant = int(0.1 * number_in_population)
+        probability_bernoulli = 0.8
+        big_number = 1000000000  # This should be bigger than any relevant objective value.
 
-    # Define the scalar variables
-    e_elitist = int(0.1 * number_in_population)
-    m_immigrant = int(0.1 * number_in_population)
-    probability_bernoulli = 0.8
-    big_number = 1000000000  # This should be bigger than any relevant objective value.
+        # Define the vectors and matrices
+        current_objective_values = np.zeros(number_in_population)
+        next_objective_values = np.zeros(number_in_population)
+        current_generation = np.random.rand(number_in_population, number_decision_variables)
+        next_generation = np.zeros((number_in_population, number_decision_variables))
+        x_vector = np.zeros(number_decision_variables)
+        first_child = np.zeros(number_decision_variables)
+        second_child = np.zeros(number_decision_variables)
 
-    # Define the vectors and matrices
-    current_objective_values = np.zeros(number_in_population)
-    next_objective_values = np.zeros(number_in_population)
-    current_generation = np.random.rand(number_in_population, number_decision_variables)
-    next_generation = np.zeros((number_in_population, number_decision_variables))
-    x_vector = np.zeros(number_decision_variables)
-    first_child = np.zeros(number_decision_variables)
-    second_child = np.zeros(number_decision_variables)
+        for g_index in range(number_of_generations):
+            # Evaluate the current generation (fitness score)
+            for i_index in range(number_in_population):
+                x_vector = current_generation[i_index, :]
+                current_objective_values[i_index] = a4_function(number_decision_variables, x_vector, class_tree_translate_to_engineering, estimate_prediction_error)
+            # Sort the population
+            sort_index = np.argsort(current_objective_values)
+            current_generation = current_generation[sort_index, :]
+            current_objective_values = current_objective_values[sort_index]
 
-    for g_index in range(number_of_generations):
-        # Evaluate the current generation (fitness score)
+            # Make elitist subset keeping top e_elitist solutions
+            next_generation[:e_elitist, :] = current_generation[:e_elitist, :]
+
+            # Make m_immigrant immigrant subset or massive mutants
+            next_generation[e_elitist:e_elitist + m_immigrant, :] = np.random.rand(m_immigrant, number_decision_variables)
+
+            # Fill remainder with crossover solutions
+            for i_index in range(e_elitist + m_immigrant, number_in_population):
+                first_parent_index = random.randint(0, number_in_population - 1)
+                second_parent_index = random.randint(0, number_in_population - 1)
+
+                # Perform Bernoulli crossover to make children
+                for j_index in range(number_decision_variables):
+                    if random.random() < probability_bernoulli:
+                        first_child[j_index] = current_generation[first_parent_index, j_index]
+                        second_child[j_index] = current_generation[second_parent_index, j_index]
+                    else:
+                        second_child[j_index] = current_generation[first_parent_index, j_index]
+                        first_child[j_index] = current_generation[second_parent_index, j_index]
+                # Tournament select the best child for the next generation
+                first_child_value = a4_function(number_decision_variables, first_child, class_tree_translate_to_engineering, estimate_prediction_error)
+                second_child_value = a4_function(number_decision_variables, second_child, class_tree_translate_to_engineering, estimate_prediction_error)
+
+                if first_child_value < second_child_value:
+                    next_generation[i_index, :] = first_child
+                else:
+                    next_generation[i_index, :] = second_child
+
+            # Copy over the current generation
+            current_generation = next_generation.copy()
+
+        # Evaluate the last generation
         for i_index in range(number_in_population):
             x_vector = current_generation[i_index, :]
             current_objective_values[i_index] = a4_function(number_decision_variables, x_vector, class_tree_translate_to_engineering, estimate_prediction_error)
+
         # Sort the population
         sort_index = np.argsort(current_objective_values)
         current_generation = current_generation[sort_index, :]
         current_objective_values = current_objective_values[sort_index]
 
-        # Make elitist subset keeping top e_elitist solutions
-        next_generation[:e_elitist, :] = current_generation[:e_elitist, :]
-
-        # Make m_immigrant immigrant subset or massive mutants
-        next_generation[e_elitist:e_elitist + m_immigrant, :] = np.random.rand(m_immigrant, number_decision_variables)
-
-        # Fill remainder with crossover solutions
-        for i_index in range(e_elitist + m_immigrant, number_in_population):
-            first_parent_index = random.randint(0, number_in_population - 1)
-            second_parent_index = random.randint(0, number_in_population - 1)
-
-            # Perform Bernoulli crossover to make children
-            for j_index in range(number_decision_variables):
-                if random.random() < probability_bernoulli:
-                    first_child[j_index] = current_generation[first_parent_index, j_index]
-                    second_child[j_index] = current_generation[second_parent_index, j_index]
-                else:
-                    second_child[j_index] = current_generation[first_parent_index, j_index]
-                    first_child[j_index] = current_generation[second_parent_index, j_index]
-
-            # Tournament select the best child for the next generation
-            first_child_value = a4_function(number_decision_variables, first_child, class_tree_translate_to_engineering, estimate_prediction_error)
-            second_child_value = a4_function(number_decision_variables, second_child, class_tree_translate_to_engineering, estimate_prediction_error)
-
-            if first_child_value < second_child_value:
-                next_generation[i_index, :] = first_child
-            else:
-                next_generation[i_index, :] = second_child
-
-        # Copy over the current generation
-        current_generation = next_generation.copy()
-
-    # Evaluate the last generation
-    for i_index in range(number_in_population):
-        x_vector = current_generation[i_index, :]
-        current_objective_values[i_index] = a4_function(number_decision_variables, x_vector, class_tree_translate_to_engineering, estimate_prediction_error)
-
-    # Sort the population
-    sort_index = np.argsort(current_objective_values)
-    current_generation = current_generation[sort_index, :]
-    current_objective_values = current_objective_values[sort_index]
-
-    x_vector = current_generation[0, :]
-    a4_translate_to_engineering(number_decision_variables, x_vector, class_tree_translate_to_engineering, current_objective_values)
-    if current_objective_values[0] < 0:
-        return -1 * current_objective_values[0]
-    else:
-        return current_objective_values[0]
+        x_vector = current_generation[0, :]
+        a4_translate_to_engineering(number_decision_variables, x_vector, class_tree_translate_to_engineering, current_objective_values)
+        if current_objective_values[0] < 0 and current_objective_values[0] >= -1:
+            val =  -1 * current_objective_values[0]
+        elif current_objective_values[0] > 1:
+            val =  (current_objective_values[0] / current_objective_values[0])
+        elif current_objective_values[0] < -1:
+            val = (current_objective_values[0] / current_objective_values[0])
+        else:
+            val = current_objective_values[0]
+        if val > max_val:
+            max_val = val
+    return max_val
 
 
 if __name__ == "__main__":
