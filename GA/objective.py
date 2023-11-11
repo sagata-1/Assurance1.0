@@ -25,9 +25,9 @@ min_feature_value = np.zeros(number_of_features)
 max_feature_value = np.zeros(number_of_features)
 response_categories = np.zeros(number_of_runs)
 prediction_category = 0
-error_value = 1.0
 
 def main():
+    error_value = 0
     # Read in the data
     dict_conversion = {"Iris-setosa": 0, "Iris-versicolor": 1, "Iris-virginica": 2}
     for i in range(number_of_runs):
@@ -45,18 +45,17 @@ def main():
     individual_point = np.array([5.1, 3.5, 1.4, 0.2])  # Example values
 
     # Function calls
-    # class_tree_translate_to_engineering(chromosome_length, chromosome_vec, person_tree)
-    # tree_model_predict(chromosome_length, chromosome_vec, person_tree, prediction_category)
-    # estimate_prediction_error(chromosome_length, person_tree, error_value)
-    val = int(deterministic_ga(30, 100, 400, person_tree))
+    class_tree_translate_to_engineering(chromosome_length, chromosome_vec, person_tree)
+    tree_model_predict(chromosome_length, chromosome_vec, person_tree, prediction_category)
+    error_value = estimate_prediction_error(chromosome_length, person_tree, 0)
+    val = deterministic_ga(chromosome_length, 100, 10, person_tree)
     print(person_tree)
-    print(error_value)
+    print(val)
 
 
 def estimate_prediction_error(chromosome_length, person_tree, error_value):
     number_of_runs = len(response_categories)
     number_of_features = feature_data.shape[1]
-    error_value = 0
 
     for i in range(number_of_runs):
         individual_point = feature_data[i, :]
@@ -67,8 +66,10 @@ def estimate_prediction_error(chromosome_length, person_tree, error_value):
             error_value += 1
 
     # TODO, consider node complexity
+    # print(error_value)
+    # print(number_of_runs)
     
-    error_value /= number_of_runs # + 0.1 *len(person_tree)
+    error_value /= (number_of_runs)
     return error_value
 
 def tree_model_predict(chromosome_length, individual_point, person_tree, prediction_category):
@@ -148,11 +149,10 @@ def class_tree_function(number_decision_variables, x_vector, a4_translate_to_eng
 
 def a4_function(number_decision_variables, x_vector, class_tree_translate_to_engineering, estimate_prediction_error):
     # Part 1: Interpret the [0,1] hypercube vector as a solution.
-    engineering_x_vector = np.zeros(number_decision_variables)
-    class_tree_translate_to_engineering(number_decision_variables, x_vector, engineering_x_vector)
+    class_tree_translate_to_engineering(number_decision_variables, x_vector, person_tree)
 
     # Part 2: Evaluate the solution.- fitness valuation
-    estimate_prediction_error(number_decision_variables, engineering_x_vector, error_value)
+    error_value = estimate_prediction_error(number_decision_variables, person_tree, 0)
 
     return error_value
 
@@ -169,7 +169,7 @@ def a4_translate_from_engineering(number_decision_variables, engineering_x_vecto
     x_vector = [0] * number_decision_variables
 
     for i in range(number_decision_variables):
-        x_vector[i] = (engineering_x_vector[i] + 1.28) / 2.56
+        x_vector[i] = ((engineering_x_vector[i] + 1.28) / 2.56) #+ 0.01 * (len(engineering_x_vector))
 
     return x_vector
 
@@ -197,7 +197,6 @@ def deterministic_ga(number_decision_variables, number_in_population, number_of_
         for i_index in range(number_in_population):
             x_vector = current_generation[i_index, :]
             current_objective_values[i_index] = a4_function(number_decision_variables, x_vector, class_tree_translate_to_engineering, estimate_prediction_error)
-
         # Sort the population
         sort_index = np.argsort(current_objective_values)
         current_generation = current_generation[sort_index, :]
@@ -246,8 +245,11 @@ def deterministic_ga(number_decision_variables, number_in_population, number_of_
     current_objective_values = current_objective_values[sort_index]
 
     x_vector = current_generation[0, :]
-    a4_translate_to_engineering(number_decision_variables, engineering_x_vector, class_tree_translate_to_engineering, engineering_x_vector)
-    return current_objective_values[0]
+    a4_translate_to_engineering(number_decision_variables, x_vector, class_tree_translate_to_engineering, current_objective_values)
+    if current_objective_values[0] < 0:
+        return -1 * current_objective_values[0]
+    else:
+        return current_objective_values[0]
 
 
 if __name__ == "__main__":
