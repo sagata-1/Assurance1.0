@@ -62,7 +62,14 @@ def index():
     total = cash
     for stock in portfolio:
         total += stock["price"] * stock["num_shares"]
-    return render_template("index.html", portfolio=portfolio, cash=usd(cash), total=usd(total))
+    username = db.execute("SELECT username FROM users WHERE id = (?)", (session["user_id"],))
+    username = [dict(i) for i in username]
+    username = username[0]["username"]
+    symbols = ["TSLA", "AAPL", "GOOG"]
+    assets = []
+    for elem in symbols:
+        assets.append(lookup(elem))
+    return render_template("index.html", portfolio=portfolio, cash=usd(cash), total=usd(total), username=username, assets=assets)
 
 
 @app.route("/buy", methods=["GET", "POST"])
@@ -158,7 +165,10 @@ def history():
         (session["user_id"],)
     )
     user_history = [dict(i) for i in user_history]
-    return render_template("history.html", history=user_history)
+    username = db.execute("SELECT username FROM users WHERE id = (?)", (session["user_id"],))
+    username = [dict(i) for i in username]
+    username = username[0]["username"]
+    return render_template("history.html", history=user_history, username=username)
 
 
 @app.route("/login", methods=["GET", "POST"])

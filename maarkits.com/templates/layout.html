@@ -22,8 +22,9 @@
 
     </head>
 
-    <body>
-        <nav class="bg-light border navbar navbar-expand-md navbar-light">
+    <body style="background-color:rgb(22, 169, 210);">
+            <!-- "bg-light border navbar navbar-expand-md navbar-light" -->
+        <nav class="navbar bg-light navbar-light navbar navbar-expand-md "> 
             <div class="container-fluid">
                 <a class="navbar-brand" href="/"> <span class="blue">$</span><span class="yellow">F</span><span class="red">a</span><span class="green">n</span><span class="blue">t</span><span class="green">a</span><span class="red">s</span><span class="yellow">y</span></a>
                 <button aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler" data-bs-target="#navbar" data-bs-toggle="collapse" type="button">
@@ -32,9 +33,6 @@
                 <div class="collapse navbar-collapse" id="navbar">
                     {% if session["user_id"] %}
                         <ul class="navbar-nav me-auto mt-2">
-                            <li class="nav-item"><a class="nav-link" href="/quote">Quote</a></li>
-                            <li class="nav-item"><a class="nav-link" href="/buy">Buy</a></li>
-                            <li class="nav-item"><a class="nav-link" href="/sell">Sell</a></li>
                             <li class="nav-item"><a class="nav-link" href="/history">History</a></li>
                             <li class="nav-item"><a class="nav-link" href="/">View Portfolio</a></li>
                         </ul>
@@ -42,6 +40,18 @@
                             <li class="nav-item"><a class="nav-link" href="/password-change">Change Password</a></li>
                             <li class="nav-item"><a class="nav-link" href="/logout">Log Out</a></li>
                         </ul>
+            <!-- <div class="sidebar pe-4 pb-3"> -->
+                    <div class="d-flex align-items-center ms-4 mb-4">
+                        <div class="position-relative">
+                            <img class="rounded-circle" src="static/img/user.jpg" alt="" style="width: 40px; height: 40px;">
+                            <div
+                                class="bg-success rounded-circle border border-2 border-white position-absolute end-0 bottom-0 p-1">
+                            </div>
+                        </div>
+                        <div class="ms-3">
+                            <h6 class="mb-0">{{username}}</h6>
+                        </div>
+                    </div>
                     {% else %}
                         <ul class="navbar-nav ms-auto mt-2">
                             <li class="nav-item"><a class="nav-link" href="/register">Register</a></li>
@@ -59,7 +69,7 @@
                 </div>
             </header>
         {% endif %}
-
+        
         <main class="container-fluid py-5 text-center">
             {% block main %}{% endblock %}
         </main>

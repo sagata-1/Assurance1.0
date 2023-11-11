@@ -6,6 +6,10 @@
 
 {% block main %}
     <form action="/register" method="post">
+        <div class="container-fluid">
+            <img src="static/landing_page.png" alt="Fantasy League Image" class="container-fluid">
+        </div>
+        <br>
         <div class="mb-3">
             <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="username" name="username" placeholder="Username" type="text">
         </div>
@@ -19,4 +23,7 @@
         <br>
         <button class="btn btn-primary" type="submit">Register</button>
     </form>
+    <script>
+        window.scrollTo(0, document.body.scrollHeight);
+    </script>
 {% endblock %}

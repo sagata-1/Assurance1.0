@@ -5,25 +5,116 @@
 {% endblock %}
 
 {% block main %}
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th class="text-start">Symbol</th>
-            <th class="text-start">Shares</th>
-            <th class="text-end">Shares</th>
-            <th class="text-end">Transacted</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for stock in history %}
+<div class="container-fluid bg-light text-center rounded p-4 shado">
+    <table class="table table-light table-hover">
+        <thead>
             <tr>
-                <td class="text-start">{{stock.stock_symbol}}</td>
-                <td class="text-end">{{stock.num_shares}}</td>
-                <td class="text-end">{{stock.price | usd}}</td>
-                <td class="text-end">{{stock.time_of_transaction}}</td>
+                <th class="text-start">Symbol</th>
+                <th class="text-start">Shares</th>
+                <th class="text-end">Price At Transaction</th>
+                <th class="text-end">Transacted</th>
             </tr>
-        {% endfor %}
+        </thead>
+        <tbody>
+            {% for stock in history %}
+                <tr>
+                    <td class="text-start">{{stock.stock_symbol}}</td>
+                    <td class="text-end">{{stock.num_shares}}</td>
+                    <td class="text-end">{{stock.price | usd}}</td>
+                    <td class="text-end">{{stock.time_of_transaction}}</td>
+                </tr>
+            {% endfor %}
 
-</tbody>
-</table>
+    </tbody>
+    </table>
+</div>
+<br>
+<div class="d-flex justify-content-between container-fluid flex-sm-column flex-xl-row flex-lg-column flex-md-column flex-column">
+    <img src="static/img/pl.png" alt="Average performance of top performing assets" width=auto height=auto>
+    <div class="bg-light text-center rounded p-4 shadow">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <h6 class="mb-0">Example Advertisement</h6>
+        </div>
+        <div>
+            <img src="static/img/ad.png" alt="Average performance of top performing assets" width=auto height=auto>
+        </div>
+    </div>
+            <div class="bg-light text-center rounded p-4 shadow">
+                <div class="d-flex align-items-center justify-content-between mb-4">
+                    <h6 class="mb-0">Leaderboard</h6>
+                    <div>
+                        <select class="form-select" aria-label="Default select example">
+                            <option selected>This Month</option>
+                            <option value="1">Last Month</option>
+                        </select>
+                    </div>
+                </div>
+                <!-- <canvas id="worldwide-sales"></canvas> -->
+                <!-- <img src="static/img/feed.png" alt="Market Feed" class="container-fluid"> -->
+                <div class="container-fluid bg-light text-center rounded p-4 shado">
+                    <table class="table table-light table-hover">
+                        <thead>
+                            <tr>
+                                <th class="text-start">Position</th>
+                                <th class="text-start">Username</th>
+                                <th class="text-end">Total Profit for the past 30 days</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                                <tr>
+                                    <td class="text-start">1</td>
+                                    <td class="text-end">{{username}}</td>
+                                    <td class="text-end">$100000.00</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-start">2</td>
+                                    <td class="text-end">John Doe</td>
+                                    <td class="text-end">$9999.00</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-start">3</td>
+                                    <td class="text-end">Billy Bob</td>
+                                    <td class="text-end">$7876.23</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-start">4</td>
+                                    <td class="text-end">Mary Sure</td>
+                                    <td class="text-end">$7654.78</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-start">5</td>
+                                    <td class="text-end">Raghav</td>
+                                    <td class="text-end">$2354.12</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-start">6</td>
+                                    <td class="text-end">Keshav</td>
+                                    <td class="text-end">$2064.33</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-start">7</td>
+                                    <td class="text-end">Arman</td>
+                                    <td class="text-end">$1976.32</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-start">8</td>
+                                    <td class="text-end">Pranav</td>
+                                    <td class="text-end">$1754.36</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-start">9</td>
+                                    <td class="text-end">Theodore</td>
+                                    <td class="text-end">$1563.22</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-start">10</td>
+                                    <td class="text-end">Mark Madison</td>
+                                    <td class="text-end">$1223.43</td>
+                                </tr>
+                
+                    </tbody>
+                    </table>
+                </div>
+            </div>
+</div>
 {% endblock %}

@@ -5,5 +5,64 @@
 {% endblock %}
 
 {% block main %}
-    The current share price of {{stock.symbol}}({{stock.name}}) is {{stock.price | usd}}
+    <div class="bg-light text-center rounded p-4 shadow">
+        The current share price of {{stock.symbol}}({{stock.name}}) is {{stock.price | usd}}
+    </div>
+    <br>
+    <div class="row g-4">
+        <div class="col-sm-12 col-xl-8">
+            <div class="bg-light text-center rounded p-4 shadow">
+                <div class="d-flex align-items-center justify-content-between mb-4">
+                    <h6 class="mb-0">{{stock.name}} news</h6>
+                    <div>
+                        <select class="form-select" aria-label="Default select example">
+                            <option selected>This Month</option>
+                            <option value="1">Last Month</option>
+                        </select>
+                    </div>
+                </div>
+                <!-- <canvas id="worldwide-sales"></canvas> -->
+                <img src="static/img/feed.png" alt="Market Feed" class="container-fluid">
+            </div>
+        </div>
+        <div class="col-sm-12 col-xl-4">
+            <div class="bg-light text-center rounded p-4 shadow h-100">
+                <div class="d-flex align-items-center justify-content-between mb-4">
+                    <h6 class="mb-0">{{stock.name}} Performance</h6>
+                    <div>
+                        <select class="form-select" aria-label="Default select example">
+                            <option selected>This Month</option>
+                            <option value="1">Last Month</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="w-100 d-flex justify-content-center">
+                    <div id="container" style="height: 370px; width: 450px;">
+                        <div>
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th class="text-start">Symbol</th>
+                                        <th class="text-end">Price</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for stock in assets %}
+                                        <tr>
+                                            <td class="text-start">{{stock.symbol}}</td>
+                                            <td class="text-end">{{stock.price | usd}}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div>
+                            <img src="static/img/AAPL.png" alt="Average performance of top performing assets" class="container-fluid">
+                        </div>
+                        <br>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}
