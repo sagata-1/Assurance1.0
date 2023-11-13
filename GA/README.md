@@ -1,5 +1,5 @@
 # Today's report
-## Items 1-4 and 6
+## Items 1-4 and 6- Getting the GA to work parallely and correctly on the iris dataset
 1-4. Items 1-4 were basically worked on together. I spent about an hour understanding the VBA code, and realized I needed to refactor an re-order quite a bit. The grad student's code was quite messy, in the sense that there were artifacts left over in her code that were "dummies" that didn't run and were just there in case she needed to user it to check a tree without GA against her benchmark example, while it does run in python. So, what I did was:
 
 ### Step 1: Go back to basics
@@ -14,7 +14,8 @@ The biggest challenge with this was that in order to match her GA, the populatio
 ## Item 5 (and 2)- Node penalty introduction
 The main point behind this is to add some kind of penalty so that the GA won't explore certain unreasonable nodes, or overfit on the data with too much reliance on one particular node. With this, there were two options. Either we provide a "tree" penatly, where we penalize trees that are too large (which was what I was doing earlier), or we add a "node" penalty, where random unreasonable values for a particular variable (while correct, would overfit the data) would be penalized. I realized that my old method wouldn't work too well since we aren't actually varying tree depth (it's fixed, just we pick its value.). So, instead, I went with the second route, where basically I noticed at the second depth level, sometimes the algorithm picks tree with a really high variable value, even though that's not needed (eg: sepal widht at 4.8 or something, and recognizes that as virginica anyway at the leaves after that split), so I decided to penalize that node with an alpha of 0.01.
 
-## Item 7
+## Item 7- Working with large dataset (over 5000 points, i.e. this was the full fraud dataset)
+Ok, so this was the big one. After a bit of fidgeting and adjusting the data (mainly setting fraud and not fraud to 1 and 2, and then adjusting to count over all features), managed to get a few runs. I started at the standard 150 datapoints just to make sure everything was working, and got an accuracy of 89% (in a 30 second run). Bumped it upto 3000 datapoints, and got 90% accuracy (with a 2 minute and 45 second run). Finally, did 2 runs with 5000 datapoints and got 92% and 90% (with each run taking about 4 minutes). Good news so far! These runs were all without the node penalty, just so that I could get a sense of the first few runs. Then, I added back the node penalty, with an alpha of 0.01, and got an accuracy of 90%.
 
-## Items 8-9
+## Items 8-9- Just rearranging control charts location on notebooks and adding in sources used
 This was very quick, just a re-arrangement of the Jupyter notebooks and adding in the source links.
