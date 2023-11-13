@@ -70,7 +70,7 @@ def parallel_estimate_prediction_error(chromosome_length, person_tree, error_val
 
 def estimate_prediction_error(pool, chromosome_length, person_tree, error_value):
     errors = pool.starmap(parallel_estimate_prediction_error, [(chromosome_length, person_tree, error_value, feature_data[i, :], response_categories[i]) for i in range(len(response_categories))])
-    return sum(errors) / len(response_categories)
+    return (sum(errors) / len(response_categories) + (0.01 * person_tree[3]), (0.01 * person_tree[3]))
 
 # def estimate_prediction_error(chromosome_length, person_tree, error_value):
 #     number_of_runs = len(response_categories)
@@ -209,8 +209,10 @@ def deterministic_ga(number_decision_variables, number_in_population, number_of_
 
     # Define the vectors and matrices
     current_objective_values = np.zeros(number_in_population)
+    normalizer = np.zeros(number_in_population)
     next_objective_values = np.zeros(number_in_population)
     # Initialise first generation
+    temp = ()
     current_generation = np.random.rand(number_in_population, number_decision_variables)
     next_generation = np.zeros((number_in_population, number_decision_variables))
     x_vector = np.zeros(number_decision_variables)
@@ -221,11 +223,14 @@ def deterministic_ga(number_decision_variables, number_in_population, number_of_
         # Evaluate the current generation (fitness score)
         for i_index in range(number_in_population):
             x_vector = current_generation[i_index, :]
-            current_objective_values[i_index] = a4_function(pool, number_decision_variables, x_vector, class_tree_translate_to_engineering, estimate_prediction_error)
+            temp = a4_function(pool, number_decision_variables, x_vector, class_tree_translate_to_engineering, estimate_prediction_error)
+            current_objective_values[i_index] = temp[0]
+            normalizer[i_index] = temp[1]
         # Sort the population
         sort_index = np.argsort(current_objective_values)
         current_generation = current_generation[sort_index, :]
         current_objective_values = current_objective_values[sort_index]
+        normalizer = normalizer[sort_index]
 
         # Make elitist subset keeping top e_elitist solutions
         next_generation[:e_elitist, :] = current_generation[:e_elitist, :]
@@ -247,8 +252,10 @@ def deterministic_ga(number_decision_variables, number_in_population, number_of_
                     second_child[j_index] = current_generation[first_parent_index, j_index]
                     first_child[j_index] = current_generation[second_parent_index, j_index]
             # Tournament select the best child for the next generation
-            first_child_value = a4_function(pool, number_decision_variables, first_child, class_tree_translate_to_engineering, estimate_prediction_error)
-            second_child_value = a4_function(pool, number_decision_variables, second_child, class_tree_translate_to_engineering, estimate_prediction_error)
+            temp = a4_function(pool, number_decision_variables, first_child, class_tree_translate_to_engineering, estimate_prediction_error)
+            temp_1 = a4_function(pool, number_decision_variables, second_child, class_tree_translate_to_engineering, estimate_prediction_error)
+            first_child_value = temp[0]
+            second_child_value = temp_1[0]
 
             if first_child_value < second_child_value:
                 next_generation[i_index, :] = first_child
@@ -265,18 +272,21 @@ def deterministic_ga(number_decision_variables, number_in_population, number_of_
     # Evaluate the last generation
     for i_index in range(number_in_population):
         x_vector = current_generation[i_index, :]
-        current_objective_values[i_index] = a4_function(pool, number_decision_variables, x_vector, class_tree_translate_to_engineering, estimate_prediction_error)
+        temp = a4_function(pool, number_decision_variables, x_vector, class_tree_translate_to_engineering, estimate_prediction_error)
+        current_objective_values[i_index] = temp[0]
+        normalizer[i_index] = temp[1]
 
     # Sort the population
     sort_index = np.argsort(current_objective_values)
     current_generation = current_generation[sort_index, :]
     current_objective_values = current_objective_values[sort_index]
+    normalizer = normalizer[sort_index]
 
     x_vector = current_generation[0, :]
     a4_translate_to_engineering(number_decision_variables, x_vector, class_tree_translate_to_engineering, engineering_x_vector)
     pool.close()
     pool.join()
-    return current_objective_values[0]
+    return current_objective_values[0] - normalizer[0]
     # if current_objective_values[0] < 0 and current_objective_values[0] >= -1:
     #     val =  -1 * current_objective_values[0]
     # elif current_objective_values[0] > 1:
