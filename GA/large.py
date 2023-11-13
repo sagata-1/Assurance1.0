@@ -71,7 +71,7 @@ def parallel_estimate_prediction_error(chromosome_length, person_tree, error_val
 
 def estimate_prediction_error(pool, chromosome_length, person_tree, error_value):
     errors = pool.starmap(parallel_estimate_prediction_error, [(chromosome_length, person_tree, error_value, feature_data[i, :], response_categories[i]) for i in range(len(response_categories))])
-    return (sum(errors) / len(response_categories) + 0.01 *(person_tree[1]), 0.01 * person_tree[1])
+    return (sum(errors) / len(response_categories) + 0.01 *(person_tree[3]), 0.01 * person_tree[3])
 
 # def estimate_prediction_error(chromosome_length, person_tree, error_value):
 #     number_of_runs = len(response_categories)
