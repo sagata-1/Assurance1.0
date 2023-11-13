@@ -58,7 +58,6 @@ def main():
     print(person_tree)
     # print(error_value)
     eng_vec = np.zeros(chromosome_length)
-    
     val = deterministic_ga(chromosome_length, 50, 50, eng_vec)
     print(eng_vec)
     print(f"{val:.2f}")
@@ -219,11 +218,6 @@ def deterministic_ga(number_decision_variables, number_in_population, number_of_
     second_child = np.zeros(number_decision_variables)
 
     for g_index in range(number_of_generations):
-        next_generation = np.zeros((number_in_population, number_decision_variables))
-        current_generation = np.random.rand(number_in_population, number_decision_variables)
-        x_vector = np.zeros(number_decision_variables)
-        first_child = np.zeros(number_decision_variables)
-        second_child = np.zeros(number_decision_variables)
         # Evaluate the current generation (fitness score)
         for i_index in range(number_in_population):
             x_vector = current_generation[i_index, :]
