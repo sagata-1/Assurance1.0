@@ -167,12 +167,12 @@ def class_tree_function(number_decision_variables, x_vector, a4_translate_to_eng
 
     return a4_function
 
-def a4_function(pool, number_decision_variables, x_vector, class_tree_translate_to_engineering, estimate_prediction_error):
+def a4_function(pool, number_decision_variables, x_vector, class_tree_translate_to_engineering, estimate_prediction_error, engineering_x_vector):
     # Part 1: Interpret the [0,1] hypercube vector as a solution.
-    class_tree_translate_to_engineering(number_decision_variables, x_vector, person_tree)
+    class_tree_translate_to_engineering(number_decision_variables, x_vector, engineering_x_vector)
 
     # Part 2: Evaluate the solution.- fitness valuation
-    error_value = estimate_prediction_error(pool, number_decision_variables, person_tree, 0)
+    error_value = estimate_prediction_error(pool, number_decision_variables, engineering_x_vector, 0)
 
     return error_value
 
@@ -223,7 +223,7 @@ def deterministic_ga(number_decision_variables, number_in_population, number_of_
         # Evaluate the current generation (fitness score)
         for i_index in range(number_in_population):
             x_vector = current_generation[i_index, :]
-            temp = a4_function(pool, number_decision_variables, x_vector, class_tree_translate_to_engineering, estimate_prediction_error)
+            temp = a4_function(pool, number_decision_variables, x_vector, class_tree_translate_to_engineering, estimate_prediction_error, engineering_x_vector)
             current_objective_values[i_index] = temp[0]
             normalizer[i_index] = temp[1]
         # Sort the population
@@ -252,8 +252,8 @@ def deterministic_ga(number_decision_variables, number_in_population, number_of_
                     second_child[j_index] = current_generation[first_parent_index, j_index]
                     first_child[j_index] = current_generation[second_parent_index, j_index]
             # Tournament select the best child for the next generation
-            temp = a4_function(pool, number_decision_variables, first_child, class_tree_translate_to_engineering, estimate_prediction_error)
-            temp_1 = a4_function(pool, number_decision_variables, second_child, class_tree_translate_to_engineering, estimate_prediction_error)
+            temp = a4_function(pool, number_decision_variables, first_child, class_tree_translate_to_engineering, estimate_prediction_error, engineering_x_vector)
+            temp_1 = a4_function(pool, number_decision_variables, second_child, class_tree_translate_to_engineering, estimate_prediction_error, engineering_x_vector)
             first_child_value = temp[0]
             second_child_value = temp_1[0]
 
@@ -272,7 +272,7 @@ def deterministic_ga(number_decision_variables, number_in_population, number_of_
     # Evaluate the last generation
     for i_index in range(number_in_population):
         x_vector = current_generation[i_index, :]
-        temp = a4_function(pool, number_decision_variables, x_vector, class_tree_translate_to_engineering, estimate_prediction_error)
+        temp = a4_function(pool, number_decision_variables, x_vector, class_tree_translate_to_engineering, estimate_prediction_error, engineering_x_vector)
         current_objective_values[i_index] = temp[0]
         normalizer[i_index] = temp[1]
 

@@ -14,7 +14,7 @@ The biggest challenge with this was that in order to match her GA, the populatio
 ## Item 5 (and 2)- Node penalty introduction
 The main point behind this is to add some kind of penalty so that the GA won't explore certain unreasonable nodes, or overfit on the data with too much reliance on one particular node. With this, there were two options. Either we provide a "tree" penatly, where we penalize trees that are too large (which was what I was doing earlier), or we add a "node" penalty, where random unreasonable values for a particular variable (while correct, would overfit the data) would be penalized. I realized that my old method wouldn't work too well since we aren't actually varying tree depth (it's fixed, just we pick its value.). So, instead, I went with the second route, where basically I noticed at the second depth level, sometimes the algorithm picks tree with a really high variable value, even though that's not needed (eg: sepal widht at 4.8 or something, and recognizes that as virginica anyway at the leaves after that split), so I decided to penalize that node with an alpha of 0.01.
 
-## Item 6
+## Item 7
 
 ## Items 8-9
 This was very quick, just a re-arrangement of the Jupyter notebooks and adding in the source links.
