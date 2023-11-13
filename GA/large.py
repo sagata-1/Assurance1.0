@@ -13,7 +13,7 @@ inputData = pd.read_csv("../data/grouped(AutoRecovered)_2.csv")
 large_value = 1000000000
 
 # Global variables
-number_of_features = 47
+number_of_features = 48
 number_of_runs = 5000
 number_of_classes = 2
 number_of_tree_levels = 3
