@@ -57,10 +57,13 @@ def main():
     # pool.join()
     # print(person_tree)
     # print(error_value)
+    start = time.time()
     eng_vec = np.zeros(chromosome_length)
     val = deterministic_ga(chromosome_length, 50, 50, eng_vec)
     print(eng_vec)
     print(f"{val:.2f}")
+    end = time.time()
+    print(f"Running time: {end - start}")
 
 def parallel_estimate_prediction_error(chromosome_length, person_tree, error_value, individual_point, response_category):
     prediction_categor = tree_model_predict(chromosome_length, individual_point, person_tree, prediction_category)
@@ -73,7 +76,7 @@ def estimate_prediction_error(pool, chromosome_length, person_tree, error_value)
     errors = pool.starmap(parallel_estimate_prediction_error, [(chromosome_length, person_tree, error_value, feature_data[i, :], response_categories[i]) for i in range(len(response_categories))])
     return (sum(errors) / len(response_categories) + 0.01 *(person_tree[3]), 0.01 * person_tree[3])
 
-# def estimate_prediction_error(chromosome_length, person_tree, error_value):
+# def estimate_prediction_error(pool, chromosome_length, person_tree, error_value):
 #     number_of_runs = len(response_categories)
 #     number_of_features = feature_data.shape[1]
 
@@ -91,7 +94,7 @@ def estimate_prediction_error(pool, chromosome_length, person_tree, error_value)
 #     # print(number_of_runs)
     
 #     error_value /= (number_of_runs)
-#     return error_value
+#     return (error_value, 0)
 
 def tree_model_predict(chromosome_length, individual_point, person_tree, prediction_category):
     if number_of_tree_levels == 2:
