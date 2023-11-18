@@ -8,8 +8,8 @@ import time
 import gc
 
 # Assuming that inputData is a pandas DataFrame that contains the required data
-inputData = pd.read_csv("../data/grouped(AutoRecovered)_2.csv")
-# inputData = pd.read_csv("/Users/arman/Documents/Arman/JHU/Assurance/optimaltree-master_2/data/grouped(AutoRecovered)_2.csv")
+# inputData = pd.read_csv("../data/grouped(AutoRecovered)_2.csv")
+inputData = pd.read_csv("/Users/arman/Documents/Arman/JHU/Assurance/optimaltree-master_2/data/grouped(AutoRecovered)_2.csv")
 
 # Large value, should be larger than anything objective function can hit
 large_value = 1000000000
@@ -148,22 +148,22 @@ def tree_model_predict(chromosome_length, individual_point, person_tree, predict
     return prediction_category
 
 def class_tree_translate_to_engineering(number_decision_variables, x_vector, engineering_x_vector):
-    # engineering_loc = np.zeros(number_decision_variables)
+    engineering_loc = np.zeros(number_decision_variables)
     for i in range(number_of_nodes):
         # Odd values in vector are splitting variables. Even values are splitting values.
         # Splitting variables for single variable splits
-        engineering_x_vector[(2 * i)] =  int(1 + int(x_vector[(2 * i)] * number_of_features))
+        engineering_loc[(2 * i)] =  int(1 + int(x_vector[(2 * i)] * number_of_features))
         # Splitting values for single variable splits
-        feature_index = int(engineering_x_vector[(2 * i)] - 1)  # Adjusting for 0-based index
+        feature_index = int(engineering_loc[(2 * i)] - 1)  # Adjusting for 0-based index
         # print(feature_index)
-        engineering_x_vector[(2 * i) + 1] = x_vector[2 * (i) + 1] * (max_feature_value[feature_index] - min_feature_value[feature_index]) + min_feature_value[feature_index]
+        engineering_loc[(2 * i) + 1] = x_vector[2 * (i) + 1] * (max_feature_value[feature_index] - min_feature_value[feature_index]) + min_feature_value[feature_index]
             
 
     # Decide which class for each leaf
     for i in range(number_of_leaves):
-        engineering_x_vector[2 * number_of_nodes + i] = int(x_vector[(2 * (number_of_nodes)) + i] * number_of_classes) + 1
+        engineering_loc[2 * number_of_nodes + i] = int(x_vector[(2 * (number_of_nodes)) + i] * number_of_classes) + 1
 
-    return engineering_x_vector
+    return engineering_loc
 
 def class_tree_function(number_decision_variables, x_vector, a4_translate_to_engineering):
     # Part 1: Interpret the [0,1] hypercube vector as a solution.
@@ -179,22 +179,22 @@ def a4_function(number_decision_variables, x_vector, class_tree_translate_to_eng
     # Create a local copy of engineering_x_vector for each process
     # engineering_loc = np.zeros(number_decision_variables)  # Define the size as needed
     engineering_loc = class_tree_translate_to_engineering(number_decision_variables, x_vector, engineering_x_vector)
-    print(engineering_x_vector)
+    print(engineering_loc)
 
     # Part 2: Evaluate the solution.- fitness valuation
-    error_value = estimate_prediction_error(number_decision_variables, engineering_x_vector, 0)
+    error_value = estimate_prediction_error(number_decision_variables, engineering_loc, 0)
     print(error_value)
 
     return error_value
 
 def a4_translate_to_engineering(number_decision_variables, x_vector, class_tree_translate_to_engineering, engineering_x_vector):
-    engineering_loc = class_tree_translate_to_engineering(number_decision_variables, x_vector, engineering_x_vector)
+    class_tree_translate_to_engineering(number_decision_variables, x_vector, engineering_x_vector)
     # return
 
     # If we need to include the alternative calculation, then I'll uncomment and use the following lines:
     # for i in range(number_decision_variables):
     #     engineering_x_vector[i] = (x_vector[i] - 0.5) * 2.56
-    return engineering_loc
+    return engineering_x_vector
 
 def a4_translate_from_engineering(number_decision_variables, engineering_x_vector):
     x_vector = [0] * number_decision_variables
@@ -238,8 +238,10 @@ def deterministic_ga(number_decision_variables, number_in_population, number_of_
         results = pool.starmap(a4_function, args_list)
         print(results)
         for i_index, (objective_value, norm_value) in enumerate(results):
+        # for i_index in range(number_in_population):
             # x_vector = current_generation[i_index, :]
             # temp = a4_function(number_decision_variables, x_vector, class_tree_translate_to_engineering, estimate_prediction_error, engineering_x_vector)
+            # print(temp)
             current_objective_values[i_index] = objective_value
             normalizer[i_index] = norm_value
         # Sort the population
