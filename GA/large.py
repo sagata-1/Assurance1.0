@@ -9,6 +9,7 @@ import gc
 
 # Assuming that inputData is a pandas DataFrame that contains the required data
 inputData = pd.read_csv("../data/grouped(AutoRecovered)_2.csv")
+# inputData = pd.read_csv("/Users/arman/Documents/Arman/JHU/Assurance/optimaltree-master_2/data/grouped(AutoRecovered)_2.csv")
 
 # Large value, should be larger than anything objective function can hit
 large_value = 1000000000
@@ -147,6 +148,7 @@ def tree_model_predict(chromosome_length, individual_point, person_tree, predict
     return prediction_category
 
 def class_tree_translate_to_engineering(number_decision_variables, x_vector, engineering_x_vector):
+    # engineering_loc = np.zeros(number_decision_variables)
     for i in range(number_of_nodes):
         # Odd values in vector are splitting variables. Even values are splitting values.
         # Splitting variables for single variable splits
@@ -174,21 +176,25 @@ def class_tree_function(number_decision_variables, x_vector, a4_translate_to_eng
 
 def a4_function(number_decision_variables, x_vector, class_tree_translate_to_engineering, estimate_prediction_error, engineering_x_vector):
     # Part 1: Interpret the [0,1] hypercube vector as a solution.
-    class_tree_translate_to_engineering(number_decision_variables, x_vector, engineering_x_vector)
+    # Create a local copy of engineering_x_vector for each process
+    # engineering_loc = np.zeros(number_decision_variables)  # Define the size as needed
+    engineering_loc = class_tree_translate_to_engineering(number_decision_variables, x_vector, engineering_x_vector)
+    print(engineering_x_vector)
 
     # Part 2: Evaluate the solution.- fitness valuation
     error_value = estimate_prediction_error(number_decision_variables, engineering_x_vector, 0)
+    print(error_value)
 
     return error_value
 
 def a4_translate_to_engineering(number_decision_variables, x_vector, class_tree_translate_to_engineering, engineering_x_vector):
-    class_tree_translate_to_engineering(number_decision_variables, x_vector, engineering_x_vector)
+    engineering_loc = class_tree_translate_to_engineering(number_decision_variables, x_vector, engineering_x_vector)
     # return
 
     # If we need to include the alternative calculation, then I'll uncomment and use the following lines:
     # for i in range(number_decision_variables):
     #     engineering_x_vector[i] = (x_vector[i] - 0.5) * 2.56
-    return engineering_x_vector
+    return engineering_loc
 
 def a4_translate_from_engineering(number_decision_variables, engineering_x_vector):
     x_vector = [0] * number_decision_variables
@@ -226,11 +232,16 @@ def deterministic_ga(number_decision_variables, number_in_population, number_of_
 
     for g_index in range(number_of_generations):
         # Evaluate the current generation (fitness score)
-        for i_index in range(number_in_population):
-            x_vector = current_generation[i_index, :]
-            temp = a4_function(number_decision_variables, x_vector, class_tree_translate_to_engineering, estimate_prediction_error, engineering_x_vector)
-            current_objective_values[i_index] = temp[0]
-            normalizer[i_index] = temp[1]
+        # Prepare arguments for each process
+        # Parallel execution
+        args_list = [(number_decision_variables, current_generation[i_index, :], class_tree_translate_to_engineering, estimate_prediction_error, engineering_x_vector) for i_index in range(number_in_population)]
+        results = pool.starmap(a4_function, args_list)
+        print(results)
+        for i_index, (objective_value, norm_value) in enumerate(results):
+            # x_vector = current_generation[i_index, :]
+            # temp = a4_function(number_decision_variables, x_vector, class_tree_translate_to_engineering, estimate_prediction_error, engineering_x_vector)
+            current_objective_values[i_index] = objective_value
+            normalizer[i_index] = norm_value
         # Sort the population
         sort_index = np.argsort(current_objective_values)
         current_generation = current_generation[sort_index, :]
@@ -275,9 +286,20 @@ def deterministic_ga(number_decision_variables, number_in_population, number_of_
         current_generation = next_generation.copy()
 
     # Evaluate the last generation
+     # Parallel execution
+        # results = pool.starmap(a4_function, args_list)
+        # for i_index, (objective_value, norm_value) in enumerate(results):
+        #     # x_vector = current_generation[i_index, :]
+        #     # temp = a4_function(number_decision_variables, x_vector, class_tree_translate_to_engineering, estimate_prediction_error, engineering_x_vector)
+        #     current_objective_values[i_index] = objective_value
+        #     normalizer[i_index] = norm_value
+    pool.close()
+    pool.join()
+    print("hello")
     for i_index in range(number_in_population):
         x_vector = current_generation[i_index, :]
         temp = a4_function(number_decision_variables, x_vector, class_tree_translate_to_engineering, estimate_prediction_error, engineering_x_vector)
+        print(temp)
         current_objective_values[i_index] = temp[0]
         normalizer[i_index] = temp[1]
 
@@ -289,8 +311,6 @@ def deterministic_ga(number_decision_variables, number_in_population, number_of_
 
     x_vector = current_generation[0, :]
     a4_translate_to_engineering(number_decision_variables, x_vector, class_tree_translate_to_engineering, engineering_x_vector)
-    pool.close()
-    pool.join()
     return current_objective_values[0] - normalizer[0]
     # if current_objective_values[0] < 0 and current_objective_values[0] >= -1:
     #     val =  -1 * current_objective_values[0]
