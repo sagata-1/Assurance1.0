@@ -148,7 +148,7 @@ def tree_model_predict(chromosome_length, individual_point, person_tree, predict
     return prediction_category
 
 def class_tree_translate_to_engineering(number_decision_variables, x_vector, engineering_x_vector):
-    engineering_loc = np.zeros(number_decision_variables)
+    engineering_loc = engineering_x_vector.copy()
     for i in range(number_of_nodes):
         # Odd values in vector are splitting variables. Even values are splitting values.
         # Splitting variables for single variable splits
@@ -188,13 +188,13 @@ def a4_function(number_decision_variables, x_vector, class_tree_translate_to_eng
     return error_value
 
 def a4_translate_to_engineering(number_decision_variables, x_vector, class_tree_translate_to_engineering, engineering_x_vector):
-    class_tree_translate_to_engineering(number_decision_variables, x_vector, engineering_x_vector)
+    engineering_loc = class_tree_translate_to_engineering(number_decision_variables, x_vector, engineering_x_vector)
     # return
 
     # If we need to include the alternative calculation, then I'll uncomment and use the following lines:
     # for i in range(number_decision_variables):
     #     engineering_x_vector[i] = (x_vector[i] - 0.5) * 2.56
-    return engineering_x_vector
+    return engineering_loc
 
 def a4_translate_from_engineering(number_decision_variables, engineering_x_vector):
     x_vector = [0] * number_decision_variables
