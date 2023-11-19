@@ -228,6 +228,7 @@ def deterministic_ga(number_decision_variables, number_in_population, number_of_
         for i_index in range(number_in_population):
             x_vector = current_generation[i_index, :]
             temp = a4_function(pool, number_decision_variables, x_vector, class_tree_translate_to_engineering, estimate_prediction_error, engineering_x_vector)
+            print(temp)
             current_objective_values[i_index] = temp[0]
             normalizer[i_index] = temp[1]
         # Sort the population
