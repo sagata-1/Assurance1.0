@@ -62,8 +62,8 @@ def main():
     start = time.time()
     eng_vec = np.zeros(chromosome_length)
     val = deterministic_ga(chromosome_length, 50, 50, eng_vec)
-    print(eng_vec)
-    print(f"{val:.2f}")
+    print(val[1])
+    print(f"{val[0]:.2f}")
     end = time.time()
     print(f"Running time: {end - start}")
 
@@ -178,7 +178,8 @@ def a4_function(number_decision_variables, x_vector, class_tree_translate_to_eng
     # Part 1: Interpret the [0,1] hypercube vector as a solution.
     # Create a local copy of engineering_x_vector for each process
     # engineering_loc = np.zeros(number_decision_variables)  # Define the size as needed
-    engineering_loc = class_tree_translate_to_engineering(number_decision_variables, x_vector, engineering_x_vector)
+    loc = engineering_x_vector.copy()
+    engineering_loc = class_tree_translate_to_engineering(number_decision_variables, x_vector, loc)
     print(engineering_loc)
 
     # Part 2: Evaluate the solution.- fitness valuation
@@ -235,15 +236,15 @@ def deterministic_ga(number_decision_variables, number_in_population, number_of_
         # Prepare arguments for each process
         # Parallel execution
         args_list = [(number_decision_variables, current_generation[i_index, :], class_tree_translate_to_engineering, estimate_prediction_error, engineering_x_vector) for i_index in range(number_in_population)]
-        # results = pool.starmap(a4_function, args_list)
+        results = pool.starmap(a4_function, args_list)
         # print(results)
-        # for i_index, (objective_value, norm_value) in enumerate(results):
-        for i_index in range(number_in_population):
-            x_vector = current_generation[i_index, :]
-            temp = a4_function(number_decision_variables, x_vector, class_tree_translate_to_engineering, estimate_prediction_error, engineering_x_vector)
-            print(temp)
-            current_objective_values[i_index] = temp[0]
-            normalizer[i_index] = temp[1]
+        for i_index, (objective_value, norm_value) in enumerate(results):
+        # for i_index in range(number_in_population):
+            # x_vector = current_generation[i_index, :]
+            # temp = a4_function(number_decision_variables, x_vector, class_tree_translate_to_engineering, estimate_prediction_error, engineering_x_vector)
+            # print(temp)
+            current_objective_values[i_index] = objective_value
+            normalizer[i_index] = norm_value
         # Sort the population
         sort_index = np.argsort(current_objective_values)
         current_generation = current_generation[sort_index, :]
@@ -312,8 +313,8 @@ def deterministic_ga(number_decision_variables, number_in_population, number_of_
     normalizer = normalizer[sort_index]
 
     x_vector = current_generation[0, :]
-    a4_translate_to_engineering(number_decision_variables, x_vector, class_tree_translate_to_engineering, engineering_x_vector)
-    return current_objective_values[0] - normalizer[0]
+    loc = a4_translate_to_engineering(number_decision_variables, x_vector, class_tree_translate_to_engineering, engineering_x_vector)
+    return (current_objective_values[0] - normalizer[0], loc)
     # if current_objective_values[0] < 0 and current_objective_values[0] >= -1:
     #     val =  -1 * current_objective_values[0]
     # elif current_objective_values[0] > 1:
