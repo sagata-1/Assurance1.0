@@ -237,7 +237,7 @@ def deterministic_ga(number_decision_variables, number_in_population, number_of_
         # Parallel execution
         args_list = [(number_decision_variables, current_generation[i_index, :], class_tree_translate_to_engineering, estimate_prediction_error, engineering_x_vector) for i_index in range(number_in_population)]
         results = pool.starmap(a4_function, args_list)
-        # print(results)
+        print(results)
         for i_index, (objective_value, norm_value) in enumerate(results):
         # for i_index in range(number_in_population):
             # x_vector = current_generation[i_index, :]
