@@ -15,7 +15,7 @@ large_value = 1000000000
 
 # Global variables
 number_of_features = 48
-number_of_runs = 5000
+number_of_runs = 5410
 number_of_classes = 2
 number_of_tree_levels = 3
 number_of_nodes = 1 + sum(2 ** i for i in range(1, number_of_tree_levels))
@@ -74,34 +74,15 @@ def main():
     graph = graphviz.Source(dot_data)
     graph.format = 'png'
     graph.render(filename='tree', directory='', view=True)
-    # Example usage
-    # array = ['Root', 'Left', 'Right', 'Left.Left', 'Left.Right']
-    # dot_representation = array_to_dot(array)
-    # # You can then write dot_representation to a file and use Graphviz to visualize it
-    # print(dot_data)
-
-    # digraph Tree {
-    # node [shape=box, style="filled, rounded", color="black", fontname="helvetica"] ;
-    # graph [ranksep=equally, splines=polyline] ;
-    # edge [fontname="helvetica"] ;
-    # 0 [label="node #0\nperiodadmt <= 0.415\ngini = 0.196\nsamples = 807\nvalue = [718, 89]\nclass = Not-Fraud", fillcolor="#e89152"] ;
-    # 1 [label="node #1\ngini = 0.069\nsamples = 529\nvalue = [510, 19]\nclass = Not-Fraud", fillcolor="#e68640"] ;
-    # 0 -> 1 [labeldistance=2.5, labelangle=45, headlabel="True"] ;
-    # 2 [label="node #2\nprovider_NoOfMonths_PartBCov_std <= 0.413\ngini = 0.377\nsamples = 278\nvalue = [208, 70]\nclass = Not-Fraud", fillcolor="#eeab7c"] ;
-    # 0 -> 2 [labeldistance=2.5, labelangle=-45, headlabel="False"] ;
-    # 3 [label="node #3\ngini = 0.251\nsamples = 197\nvalue = [168, 29]\nclass = Not-Fraud", fillcolor="#e9975b"] ;
-    # 2 -> 3 ;
-    # 4 [label="node #4\nprovider_NoOfMonths_PartBCov_std <= 1.248\ngini = 0.5\nsamples = 81\nvalue = [40, 41]\nclass = Fraud", fillcolor="#fafdfe"] ;
-    # 2 -> 4 ;
-    # 5 [label="node #5\ngini = 0.353\nsamples = 48\nvalue = [11, 37]\nclass = Fraud", fillcolor="#74baed"] ;
-    # 4 -> 5 ;
-    # 6 [label="node #6\ngini = 0.213\nsamples = 33\nvalue = [29, 4]\nclass = Not-Fraud", fillcolor="#e99254"] ;
-    # 4 -> 6 ;
-    # {rank=same ; 0} ;
-    # {rank=same ; 2} ;
-    # {rank=same ; 4} ;
-    # {rank=same ; 1; 3; 5; 6} ;
-    # }
+    # Make predictions and append them to the pandas dataframe and store it in a new file
+    print(eng_vec)
+    predictions = []
+    for i in range(number_of_runs):
+        predictions.append(int(tree_model_predict(chromosome_length,feature_data[i, :], eng_vec, prediction_category)))
+    print(predictions)
+    inputData["Predictions"] = predictions
+    result = inputData[["PotentialFraud", "Predictions"]]
+    result.to_csv("predictions.csv", sep=',', index=False, encoding='utf-8')
 
 # def parallel_estimate_prediction_error(chromosome_length, person_tree, error_value, individual_point, response_category):
 #     prediction_categor = tree_model_predict(chromosome_length, individual_point, person_tree, prediction_category)
@@ -153,39 +134,52 @@ def array_to_dot(array, data):
 def estimate_prediction_error(pool, chromosome_length, person_tree, error_value):
     number_of_runs = len(response_categories)
     number_of_features = feature_data.shape[1]
+    insensitivity = 0
+    imprecision = 0
+    not_fraud = 0
+    fraud = 0
 
     for i in range(number_of_runs):
         individual_point = feature_data[i, :]
 
         prediction_categor = tree_model_predict(chromosome_length, individual_point, person_tree, prediction_category)
         # print(prediction_categor, response_categories[i], individual_point)
-
+        # if int(response_categories[i]) == 1:
+        #     if int(prediction_categor) != int(response_categories[i]) and int(response_categories[i]) == 1:
+        #         imprecision += 1
+        #     not_fraud += 1
+        # elif int(response_categories[i]) == 2:
+        #     if int(prediction_categor) != int(response_categories[i]):
+        #         insensitivity += 1
+        #     fraud += 1
         if int(prediction_categor) != int(response_categories[i]):
             error_value += 1
-            
 
     # TODO, consider node complexity
     # print(error_value)
     # print(number_of_runs)
     
     error_value /= (number_of_runs)
+    # error_value = (((imprecision / not_fraud) + (insensitivity / fraud)) / 2)
+        
     return (error_value, 0)
 
 def tree_model_predict(chromosome_length, individual_point, person_tree, prediction_category):
+    prediction_categor = 0
     if number_of_tree_levels == 2:
         # Top node
         if individual_point[int(person_tree[0]) - 1] < person_tree[1]:
             # Second node
             if individual_point[int(person_tree[2]) - 1] < person_tree[3]:
-                prediction_category = person_tree[6]
+                prediction_categor = person_tree[6]
             else:
-                prediction_category = person_tree[7]
+                prediction_categor = person_tree[7]
         else:
             # Third node
             if individual_point[int(person_tree[4]) - 1] < person_tree[5]:
-                prediction_category = person_tree[8]
+                prediction_categor = person_tree[8]
             else:
-                prediction_category = person_tree[9]
+                prediction_categor = person_tree[9]
 
     elif number_of_tree_levels == 3:
         # Node 1
@@ -194,31 +188,31 @@ def tree_model_predict(chromosome_length, individual_point, person_tree, predict
             if individual_point[int(person_tree[2]) - 1] < person_tree[3]:
                 # Node 4
                 if individual_point[int(person_tree[6]) - 1] < person_tree[7]:
-                    prediction_category = person_tree[14]
+                    prediction_categor = person_tree[14]
                 else:
-                    prediction_category = person_tree[15]
+                    prediction_categor = person_tree[15]
             # Node 5
             else:
                 if individual_point[int(person_tree[8]) - 1] < person_tree[9]:
-                    prediction_category = person_tree[16]
+                    prediction_categor = person_tree[16]
                 else:
-                    prediction_category = person_tree[17]
+                    prediction_categor = person_tree[17]
         # Node 3
         else:
             if individual_point[int(person_tree[4]) - 1] < person_tree[5]:
                 # Node 6
                 if individual_point[int(person_tree[10]) - 1] < person_tree[11]:
-                    prediction_category = person_tree[18]
+                    prediction_categor = person_tree[18]
                 else:
-                    prediction_category = person_tree[19]
+                    prediction_categor = person_tree[19]
             # Node 7
             else:
                 if individual_point[int(person_tree[12]) - 1] < person_tree[13]:
-                    prediction_category = person_tree[20]
+                    prediction_categor = person_tree[20]
                 else:
-                    prediction_category = person_tree[21]
+                    prediction_categor = person_tree[21]
 
-    return prediction_category
+    return prediction_categor
 
 def class_tree_translate_to_engineering(number_decision_variables, x_vector, engineering_x_vector):
     for i in range(number_of_nodes):
@@ -279,7 +273,7 @@ def deterministic_ga(number_decision_variables, number_in_population, number_of_
     # number_of_nodes = 1 + sum(2 ** i for i in range(1, number_of_tree_levels))
     # number_of_leaves = 2 ** number_of_tree_levels
     # number_decision_variables = number_decision_variables
-    pool = mp.Pool(mp.cpu_count())
+    pool = 0
     # Define the scalar variables
     e_elitist = int(0.1 * number_in_population)
     m_immigrant = int(0.1 * number_in_population)
@@ -364,8 +358,8 @@ def deterministic_ga(number_decision_variables, number_in_population, number_of_
 
     x_vector = current_generation[0, :]
     a4_translate_to_engineering(number_decision_variables, x_vector, class_tree_translate_to_engineering, engineering_x_vector)
-    pool.close()
-    pool.join()
+    # pool.close()
+    # pool.join()
     return current_objective_values[0] - normalizer[0]
     # if current_objective_values[0] < 0 and current_objective_values[0] >= -1:
     #     val =  -1 * current_objective_values[0]
