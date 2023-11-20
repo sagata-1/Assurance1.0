@@ -61,7 +61,7 @@ def main():
     # print(error_value)
     start = time.time()
     eng_vec = np.zeros(chromosome_length)
-    val = deterministic_ga(chromosome_length, 50, 50, eng_vec)
+    val = deterministic_ga(chromosome_length, 100, 10, eng_vec)
     print(val[1])
     print(f"{val[0]:.2f}")
     end = time.time()
@@ -178,8 +178,7 @@ def a4_function(number_decision_variables, x_vector, class_tree_translate_to_eng
     # Part 1: Interpret the [0,1] hypercube vector as a solution.
     # Create a local copy of engineering_x_vector for each process
     # engineering_loc = np.zeros(number_decision_variables)  # Define the size as needed
-    loc = engineering_x_vector.copy()
-    engineering_loc = class_tree_translate_to_engineering(number_decision_variables, x_vector, loc)
+    engineering_loc = class_tree_translate_to_engineering(number_decision_variables, x_vector, engineering_x_vector)
     print(engineering_loc)
 
     # Part 2: Evaluate the solution.- fitness valuation
