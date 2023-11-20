@@ -5,6 +5,7 @@ from basicGA import deterministic_ga
 import multiprocessing as mp
 import time
 import gc
+import graphviz
 
 # Assuming that inputData is a pandas DataFrame that contains the required data
 inputData = pd.read_csv("../data/grouped(AutoRecovered)_2.csv")
@@ -59,11 +60,48 @@ def main():
     # print(error_value)
     start = time.time()
     eng_vec = np.zeros(chromosome_length)
-    val = deterministic_ga(chromosome_length, 100, 10, eng_vec)
+    val = deterministic_ga(chromosome_length, 10, 10, eng_vec)
     print(eng_vec)
     print(f"{val:.2f}")
     end = time.time()
     print(f"Running time: {end - start}")
+    dot_data = array_to_dot(eng_vec, inputData)
+    # print(dot_data)
+    with open("tree.dot", "w") as f:
+        f.write(dot_data)
+    # s = graphviz.Source(dot_data, format="png")
+    # s.render('tree')
+    graph = graphviz.Source(dot_data)
+    graph.format = 'png'
+    graph.render(filename='tree', directory='', view=True)
+    # Example usage
+    # array = ['Root', 'Left', 'Right', 'Left.Left', 'Left.Right']
+    # dot_representation = array_to_dot(array)
+    # # You can then write dot_representation to a file and use Graphviz to visualize it
+    # print(dot_data)
+
+    # digraph Tree {
+    # node [shape=box, style="filled, rounded", color="black", fontname="helvetica"] ;
+    # graph [ranksep=equally, splines=polyline] ;
+    # edge [fontname="helvetica"] ;
+    # 0 [label="node #0\nperiodadmt <= 0.415\ngini = 0.196\nsamples = 807\nvalue = [718, 89]\nclass = Not-Fraud", fillcolor="#e89152"] ;
+    # 1 [label="node #1\ngini = 0.069\nsamples = 529\nvalue = [510, 19]\nclass = Not-Fraud", fillcolor="#e68640"] ;
+    # 0 -> 1 [labeldistance=2.5, labelangle=45, headlabel="True"] ;
+    # 2 [label="node #2\nprovider_NoOfMonths_PartBCov_std <= 0.413\ngini = 0.377\nsamples = 278\nvalue = [208, 70]\nclass = Not-Fraud", fillcolor="#eeab7c"] ;
+    # 0 -> 2 [labeldistance=2.5, labelangle=-45, headlabel="False"] ;
+    # 3 [label="node #3\ngini = 0.251\nsamples = 197\nvalue = [168, 29]\nclass = Not-Fraud", fillcolor="#e9975b"] ;
+    # 2 -> 3 ;
+    # 4 [label="node #4\nprovider_NoOfMonths_PartBCov_std <= 1.248\ngini = 0.5\nsamples = 81\nvalue = [40, 41]\nclass = Fraud", fillcolor="#fafdfe"] ;
+    # 2 -> 4 ;
+    # 5 [label="node #5\ngini = 0.353\nsamples = 48\nvalue = [11, 37]\nclass = Fraud", fillcolor="#74baed"] ;
+    # 4 -> 5 ;
+    # 6 [label="node #6\ngini = 0.213\nsamples = 33\nvalue = [29, 4]\nclass = Not-Fraud", fillcolor="#e99254"] ;
+    # 4 -> 6 ;
+    # {rank=same ; 0} ;
+    # {rank=same ; 2} ;
+    # {rank=same ; 4} ;
+    # {rank=same ; 1; 3; 5; 6} ;
+    # }
 
 # def parallel_estimate_prediction_error(chromosome_length, person_tree, error_value, individual_point, response_category):
 #     prediction_categor = tree_model_predict(chromosome_length, individual_point, person_tree, prediction_category)
@@ -75,6 +113,42 @@ def main():
 # def estimate_prediction_error(pool, chromosome_length, person_tree, error_value):
 #     errors = pool.starmap(parallel_estimate_prediction_error, [(chromosome_length, person_tree, error_value, feature_data[i, :], response_categories[i]) for i in range(len(response_categories))])
 #     return (sum(errors) / len(response_categories) + 0.01 *(person_tree[3]), 0.01 * person_tree[3])
+
+def array_to_dot(array, data):
+    # Node features and values
+    temp_arr = array[:-8]
+    # Leaf nodes- Fraud / Not-Fraud
+    classes = list(map(int, array[14:]))
+    count = 0
+    dot_str = 'digraph G {\n'
+    dot_str += 'node [shape="box", style="filled, rounded", color="orange", fontname="helvetica"];\ngraph [ranksep=equally, splines=polyline];\nedge [fontname="helvetica"];\n'
+    for index, value in enumerate(temp_arr):
+        # Create a node for each element in the array
+        if index % 2 == 0:
+            feature = int(value)
+            dot_str += f'    {count} [label="Node #{count}\n Feature {list(data.columns.values)[feature]} '
+            continue
+        else:
+            dot_str += f'<= {value}"];\n'
+        
+            # Assuming a binary tree stored in a typical array format (as that's what the grad student is using)
+            left_child_index = 2 * count + 1
+            right_child_index = 2 * count + 2
+            
+            # Add edges if children exist
+            if left_child_index <= len(temp_arr):
+                dot_str += f'    {count} -> {left_child_index};\n'
+            if right_child_index <= len(temp_arr):
+                dot_str += f'    {count} -> {right_child_index};\n'
+            count += 1
+    for i in range(7, len(classes) + 7):
+        if classes[i - 7] == 1:
+            dot_str += f'    {i} [label="Not-Fraud"]\n'
+        else:
+            dot_str += f'    {i} [label="Fraud", fillcolor="#74baed"]\n'
+    # dot_str += '{rank=same ; 7; 8; 9; 10; 11; 12; 13; 14}\n'
+    dot_str += '}'
+    return dot_str
 
 def estimate_prediction_error(pool, chromosome_length, person_tree, error_value):
     number_of_runs = len(response_categories)
@@ -88,6 +162,7 @@ def estimate_prediction_error(pool, chromosome_length, person_tree, error_value)
 
         if int(prediction_categor) != int(response_categories[i]):
             error_value += 1
+            
 
     # TODO, consider node complexity
     # print(error_value)
