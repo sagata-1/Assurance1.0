@@ -66,6 +66,28 @@ def main():
     print(f"{val[0]:.2f}")
     end = time.time()
     print(f"Running time: {end - start}")
+    # digraph Tree {
+    # node [shape=box, style="filled, rounded", color="black", fontname="helvetica"] ;
+    # graph [ranksep=equally, splines=polyline] ;
+    # edge [fontname="helvetica"] ;
+    # 0 [label="node #0\nperiodadmt <= 0.415\ngini = 0.196\nsamples = 807\nvalue = [718, 89]\nclass = Not-Fraud", fillcolor="#e89152"] ;
+    # 1 [label="node #1\ngini = 0.069\nsamples = 529\nvalue = [510, 19]\nclass = Not-Fraud", fillcolor="#e68640"] ;
+    # 0 -> 1 [labeldistance=2.5, labelangle=45, headlabel="True"] ;
+    # 2 [label="node #2\nprovider_NoOfMonths_PartBCov_std <= 0.413\ngini = 0.377\nsamples = 278\nvalue = [208, 70]\nclass = Not-Fraud", fillcolor="#eeab7c"] ;
+    # 0 -> 2 [labeldistance=2.5, labelangle=-45, headlabel="False"] ;
+    # 3 [label="node #3\ngini = 0.251\nsamples = 197\nvalue = [168, 29]\nclass = Not-Fraud", fillcolor="#e9975b"] ;
+    # 2 -> 3 ;
+    # 4 [label="node #4\nprovider_NoOfMonths_PartBCov_std <= 1.248\ngini = 0.5\nsamples = 81\nvalue = [40, 41]\nclass = Fraud", fillcolor="#fafdfe"] ;
+    # 2 -> 4 ;
+    # 5 [label="node #5\ngini = 0.353\nsamples = 48\nvalue = [11, 37]\nclass = Fraud", fillcolor="#74baed"] ;
+    # 4 -> 5 ;
+    # 6 [label="node #6\ngini = 0.213\nsamples = 33\nvalue = [29, 4]\nclass = Not-Fraud", fillcolor="#e99254"] ;
+    # 4 -> 6 ;
+    # {rank=same ; 0} ;
+    # {rank=same ; 2} ;
+    # {rank=same ; 4} ;
+    # {rank=same ; 1; 3; 5; 6} ;
+    # }
 
 # def parallel_estimate_prediction_error(chromosome_length, person_tree, error_value, individual_point, response_category):
 #     prediction_categor = tree_model_predict(chromosome_length, individual_point, person_tree, prediction_category)

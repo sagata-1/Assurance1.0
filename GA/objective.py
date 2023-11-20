@@ -49,18 +49,21 @@ def main():
     individual_point = np.array([5.1, 3.5, 1.4, 0.2])  # Example values
 
     # Function calls
-    class_tree_translate_to_engineering(chromosome_length, chromosome_vec, person_tree)
-    # print(tree_model_predict(chromosome_length, individual_point, person_tree, 10))
-    pool = mp.Pool(1)
-    error_value = estimate_prediction_error(pool, chromosome_length, person_tree, 0)
-    pool.close()
-    pool.join()
-    print(person_tree)
+    # class_tree_translate_to_engineering(chromosome_length, chromosome_vec, person_tree)
+    # # print(tree_model_predict(chromosome_length, individual_point, person_tree, 10))
+    # pool = mp.Pool(1)
+    # error_value = estimate_prediction_error(pool, chromosome_length, person_tree, 0)
+    # pool.close()
+    # pool.join()
+    # print(person_tree)
     # print(error_value)
+    start = time.time()
     eng_vec = np.zeros(chromosome_length)
     val = deterministic_ga(chromosome_length, 50, 50, eng_vec)
     print(eng_vec)
     print(f"{val:.2f}")
+    end = time.time()
+    print(end-start)
 
 def parallel_estimate_prediction_error(chromosome_length, person_tree, error_value, individual_point, response_category):
     prediction_categor = tree_model_predict(chromosome_length, individual_point, person_tree, prediction_category)
@@ -70,27 +73,29 @@ def parallel_estimate_prediction_error(chromosome_length, person_tree, error_val
 
 def estimate_prediction_error(pool, chromosome_length, person_tree, error_value):
     errors = pool.starmap(parallel_estimate_prediction_error, [(chromosome_length, person_tree, error_value, feature_data[i, :], response_categories[i]) for i in range(len(response_categories))])
+    # print(errors)
     return (sum(errors) / len(response_categories) + (0.01 * person_tree[3]), (0.01 * person_tree[3]))
 
-# def estimate_prediction_error(chromosome_length, person_tree, error_value):
-#     number_of_runs = len(response_categories)
-#     number_of_features = feature_data.shape[1]
+def estimate_prediction_error(pool, chromosome_length, person_tree, error_value):
+    number_of_runs = len(response_categories)
+    number_of_features = feature_data.shape[1]
 
-#     for i in range(number_of_runs):
-#         individual_point = feature_data[i, :]
+    for i in range(number_of_runs):
+        individual_point = feature_data[i, :]
 
-#         prediction_categor = tree_model_predict(chromosome_length, individual_point, person_tree, prediction_category)
-#         # print(prediction_categor, response_categories[i], individual_point)
+        prediction_categor = tree_model_predict(chromosome_length, individual_point, person_tree, prediction_category)
+        # print(prediction_categor, response_categories[i], individual_point)
 
-#         if int(prediction_categor) != int(response_categories[i]):
-#             error_value += 1
+        if int(prediction_categor) != int(response_categories[i]):
+            error_value += 1
 
-#     # TODO, consider node complexity
-#     # print(error_value)
-#     # print(number_of_runs)
+    # TODO, consider node complexity
+    # print(error_value)
+    # print(number_of_runs)
     
-#     error_value /= (number_of_runs)
-#     return error_value
+    error_value /= (number_of_runs)
+    error_value = (error_value, 0)
+    return error_value
 
 def tree_model_predict(chromosome_length, individual_point, person_tree, prediction_category):
     if number_of_tree_levels == 2:
@@ -202,6 +207,7 @@ def deterministic_ga(number_decision_variables, number_in_population, number_of_
     # number_decision_variables = number_decision_variables
     pool = mp.Pool(mp.cpu_count())
     # Define the scalar variables
+    # pool = 1
     e_elitist = int(0.1 * number_in_population)
     m_immigrant = int(0.1 * number_in_population)
     probability_bernoulli = 0.8
@@ -218,12 +224,14 @@ def deterministic_ga(number_decision_variables, number_in_population, number_of_
     x_vector = np.zeros(number_decision_variables)
     first_child = np.zeros(number_decision_variables)
     second_child = np.zeros(number_decision_variables)
-
+    count = 0
     for g_index in range(number_of_generations):
+        count += 1
         # Evaluate the current generation (fitness score)
         for i_index in range(number_in_population):
             x_vector = current_generation[i_index, :]
             temp = a4_function(pool, number_decision_variables, x_vector, class_tree_translate_to_engineering, estimate_prediction_error, engineering_x_vector)
+            print(count)
             current_objective_values[i_index] = temp[0]
             normalizer[i_index] = temp[1]
         # Sort the population
@@ -286,6 +294,7 @@ def deterministic_ga(number_decision_variables, number_in_population, number_of_
     a4_translate_to_engineering(number_decision_variables, x_vector, class_tree_translate_to_engineering, engineering_x_vector)
     pool.close()
     pool.join()
+    print(count)
     return current_objective_values[0] - normalizer[0]
     # if current_objective_values[0] < 0 and current_objective_values[0] >= -1:
     #     val =  -1 * current_objective_values[0]

@@ -60,7 +60,7 @@ def main():
     # print(error_value)
     start = time.time()
     eng_vec = np.zeros(chromosome_length)
-    val = deterministic_ga(chromosome_length, 10, 10, eng_vec)
+    val = deterministic_ga(chromosome_length, 30, 30, eng_vec)
     print(eng_vec)
     print(f"{val:.2f}")
     end = time.time()
@@ -79,7 +79,7 @@ def main():
     predictions = []
     for i in range(number_of_runs):
         predictions.append(int(tree_model_predict(chromosome_length,feature_data[i, :], eng_vec, prediction_category)))
-    print(predictions)
+    # print(predictions)
     inputData["Predictions"] = predictions
     result = inputData[["PotentialFraud", "Predictions"]]
     result.to_csv("predictions.csv", sep=',', index=False, encoding='utf-8')
@@ -108,7 +108,6 @@ def array_to_dot(array, data):
         if index % 2 == 0:
             feature = int(value)
             dot_str += f'    {count} [label="Node #{count}\n Feature {list(data.columns.values)[feature]} '
-            continue
         else:
             dot_str += f'<= {value}"];\n'
         
@@ -144,23 +143,24 @@ def estimate_prediction_error(pool, chromosome_length, person_tree, error_value)
 
         prediction_categor = tree_model_predict(chromosome_length, individual_point, person_tree, prediction_category)
         # print(prediction_categor, response_categories[i], individual_point)
-        # if int(response_categories[i]) == 1:
-        #     if int(prediction_categor) != int(response_categories[i]) and int(response_categories[i]) == 1:
-        #         imprecision += 1
-        #     not_fraud += 1
-        # elif int(response_categories[i]) == 2:
-        #     if int(prediction_categor) != int(response_categories[i]):
-        #         insensitivity += 1
-        #     fraud += 1
-        if int(prediction_categor) != int(response_categories[i]):
-            error_value += 1
+        if int(response_categories[i]) == 1:
+            if int(prediction_categor) != int(response_categories[i]) and int(response_categories[i]) == 1:
+                imprecision += 1
+            not_fraud += 1
+        elif int(response_categories[i]) == 2:
+            if int(prediction_categor) != int(response_categories[i]):
+                insensitivity += 1
+            fraud += 1
+        # if int(prediction_categor) != int(response_categories[i]):
+        #     error_value += 1
 
     # TODO, consider node complexity
     # print(error_value)
     # print(number_of_runs)
     
-    error_value /= (number_of_runs)
-    # error_value = (((imprecision / not_fraud) + (insensitivity / fraud)) / 2)
+    # error_value /= (number_of_runs)
+    error_value = (((imprecision / not_fraud) + (insensitivity / fraud)) / 2)
+    print("Test", (imprecision / not_fraud), (insensitivity / fraud))
         
     return (error_value, 0)
 
