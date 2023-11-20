@@ -59,7 +59,7 @@ def main():
     # print(error_value)
     start = time.time()
     eng_vec = np.zeros(chromosome_length)
-    val = deterministic_ga(chromosome_length, 50, 50, eng_vec)
+    val = deterministic_ga(chromosome_length, 100, 10, eng_vec)
     print(eng_vec)
     print(f"{val:.2f}")
     end = time.time()
