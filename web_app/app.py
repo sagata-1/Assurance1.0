@@ -1,40 +1,29 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, make_response, session
 from flask_session import Session
+from flaskwebgui import FlaskUI
+import numpy as np
 from numpy import loadtxt
 import pandas as pd
 from numpy import sort
-from xgboost import XGBClassifier
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
-from sklearn.feature_selection import SelectFromModel
 import os
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-from IPython.display import Image
 import time
 import random
-
-from lsopt.tree import OptimalTreeClassifier ## M-OCT propsed by Liu & Allen
-from lsopt.tree import BinNodePenaltyOptimalTreeClassifier ## BNP-OCT propsed by Liu & Allen
-# from lsopt.tree import OldOptimalTreeClassifier ## OCT proposed by Bertsimas & Dunn
-
-from sklearn.metrics import classification_report
-from sklearn.metrics import confusion_matrix
-from sklearn import tree 
-
 import graphviz
 
 app = Flask(__name__)
 
-# Configure session to use filesystem
-app.config["SESSION_PERMANENT"] = False
-app.config["SESSION_TYPE"] = "filesystem"
-SECRET_KEY = os.urandom(32)
-app.config['SECRET_KEY'] = SECRET_KEY
-Session(app)
+# # Configure session to use filesystem
+# app.config["SESSION_PERMANENT"] = False
+# app.config["SESSION_TYPE"] = "filesystem"
+# SECRET_KEY = os.urandom(32)
+# app.config['SECRET_KEY'] = SECRET_KEY
+# Session(app)
 
+ui = FlaskUI(app=app, server="flask")
+
+# Variable to keep track of page changes
 training_complete = 0
+# Legacy varialble- to keep track of features selected for (might be used again)
 names = []
 inputData = pd.DataFrame()
 # global selection_model
@@ -94,16 +83,16 @@ def dataset():
     # Debug statements- checking that we're transitioning between pages
     print(training_complete)
     print(request.form)
+    
+    # Page that renders where you can upload the data
     if request.method == 'GET':
         return render_template('dataset.html')
-    # elif training_complete == 1:
-    #     training_complete = 2
-    #     return render_template("optfeatures.html")
+    # Page that indicates training is occurring
     elif training_complete == 2:
         training_complete = 3
         return render_template("training.html", names=names)
     else:
-        # Load data
+        # Load data in, then indicate that training has started
         if training_complete == 0:
             print(request.files)
             inputData = pd.read_csv(request.files["image"])
@@ -120,7 +109,6 @@ def dataset():
             training_complete = 2
             return redirect("/dataset", code=307)
         else:
-            
             # Train model
             start = time.time()
             eng_vec = np.zeros(chromosome_length)
@@ -130,11 +118,15 @@ def dataset():
             end = time.time()
             print(f"Running time: {end - start}")
             dot_data = array_to_dot(eng_vec, inputData)
-            graph = graphviz.Source(dot_data)
-            graph.format = 'png'
-            graph.render(filename='tree', directory='static/img/', view=False)
+            # graph = graphviz.Source(dot_data)
+            # graph.format = 'png'
+            # graph.render(filename='tree', directory='static/img/', view=False)
+            # Backend check that everything is working fine
             print(eng_vec)
+            # Page that shows trained tree
             return render_template('trueoutput.html')
+
+# Page that shows trained tree (available by get, so currently just for checking)
 @app.route('/trueoutput', methods=["GET"])
 def true_output():
     return render_template('trueoutput.html')
@@ -179,10 +171,12 @@ def data():
 def dashboard():
     return render_template('dashboard.html')
 
+# 404 return page
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template('404.html'), 404
 
+# Function  to convert tree in array form into a form that can be read by graphviz to get a graph
 def array_to_dot(array, data):
     # Node features and values
     temp_arr = array[:-8]
@@ -218,6 +212,7 @@ def array_to_dot(array, data):
     dot_str += '}'
     return dot_str
 
+# Name is self-explanatory, estimate the error of each tree in the GA
 def estimate_prediction_error(pool, chromosome_length, person_tree, error_value):
     number_of_runs = len(response_categories)
     number_of_features = feature_data.shape[1]
@@ -228,7 +223,7 @@ def estimate_prediction_error(pool, chromosome_length, person_tree, error_value)
 
     for i in range(number_of_runs):
         individual_point = feature_data[i, :]
-
+        # Make prediction with current tree
         prediction_categor = tree_model_predict(chromosome_length, individual_point, person_tree, prediction_category)
         # print(prediction_categor, response_categories[i], individual_point)
         if int(response_categories[i]) == 1:
@@ -239,6 +234,7 @@ def estimate_prediction_error(pool, chromosome_length, person_tree, error_value)
             if int(prediction_categor) != int(response_categories[i]):
                 insensitivity += 1
             fraud += 1
+        # Legacy code, might be used again
         # if int(prediction_categor) != int(response_categories[i]):
         #     error_value += 1
 
@@ -247,11 +243,13 @@ def estimate_prediction_error(pool, chromosome_length, person_tree, error_value)
     # print(number_of_runs)
     
     # error_value /= (number_of_runs)
+    # Compute error value with respect to sensitivity and precision (proprotion of not-fraud and fraud-cases identified, as a weighted average)
     error_value = (((imprecision / not_fraud) + (insensitivity / fraud)) / 2)
     print("Test", (imprecision / not_fraud), (insensitivity / fraud))
         
     return (error_value, 0)
 
+# Make prediction with current tree
 def tree_model_predict(chromosome_length, individual_point, person_tree, prediction_category):
     prediction_categor = 0
     if number_of_tree_levels == 2:
@@ -302,6 +300,7 @@ def tree_model_predict(chromosome_length, individual_point, person_tree, predict
 
     return prediction_categor
 
+# Convert the zero vector array into a tree
 def class_tree_translate_to_engineering(number_decision_variables, x_vector, engineering_x_vector):
     for i in range(number_of_nodes):
         # Odd values in vector are splitting variables. Even values are splitting values.
@@ -328,6 +327,7 @@ def class_tree_function(number_decision_variables, x_vector, a4_translate_to_eng
 
     return a4_function
 
+# Fitness value estimation- constructs tree, then evaluates it (currently the main candidate for parallelization)
 def a4_function(pool, number_decision_variables, x_vector, class_tree_translate_to_engineering, estimate_prediction_error, engineering_x_vector):
     # Part 1: Interpret the [0,1] hypercube vector as a solution.
     class_tree_translate_to_engineering(number_decision_variables, x_vector, engineering_x_vector)
@@ -337,6 +337,7 @@ def a4_function(pool, number_decision_variables, x_vector, class_tree_translate_
 
     return error_value
 
+# Translate final tree into array form
 def a4_translate_to_engineering(number_decision_variables, x_vector, class_tree_translate_to_engineering, engineering_x_vector):
     class_tree_translate_to_engineering(number_decision_variables, x_vector, engineering_x_vector)
     # return
@@ -354,13 +355,9 @@ def a4_translate_from_engineering(number_decision_variables, engineering_x_vecto
 
     return x_vector
 
-
+# The GA algorithm
 def deterministic_ga(number_decision_variables, number_in_population, number_of_generations, engineering_x_vector):
-    # Assuming a4Function and a4TranslateToEngineering are defined elsewhere
-    # number_of_tree_levels = 2
-    # number_of_nodes = 1 + sum(2 ** i for i in range(1, number_of_tree_levels))
-    # number_of_leaves = 2 ** number_of_tree_levels
-    # number_decision_variables = number_decision_variables
+    # Legacy, possibly used when parallelizing
     pool = 0
     # Define the scalar variables
     e_elitist = int(0.1 * number_in_population)
@@ -423,11 +420,13 @@ def deterministic_ga(number_decision_variables, number_in_population, number_of_
                 next_generation[i_index, :] = first_child
             else:
                 next_generation[i_index, :] = second_child
-
+                
+        # Possible set up for depth variability, currently not in use
         # if (g_index == 25):
         #     number_of_nodes = 1 + sum(2 ** i for i in range(1, number_of_tree_levels))
         #     number_of_leaves = 2 ** number_of_tree_levels
         #     number_decision_variables = 2 * number_of_nodes + number_of_leaves
+        
         # Copy over the current generation
         current_generation = next_generation.copy()
 
@@ -449,3 +448,6 @@ def deterministic_ga(number_decision_variables, number_in_population, number_of_
     # pool.close()
     # pool.join()
     return current_objective_values[0] - normalizer[0]
+
+if __name__ == "__main__":
+    ui.run()
