@@ -123,7 +123,14 @@ def dataset():
             # graph.render(filename='tree', directory='static/img/', view=False)
             # Backend check that everything is working fine
             print(eng_vec)
-            # Page that shows trained tree
+            # Potentially loading predictions into csv, currently debugging
+            # predictions = []
+            # for i in range(number_of_runs):
+            #     predictions.append(int(tree_model_predict(chromosome_length,feature_data[i, :], eng_vec, prediction_category)))
+            # # print(predictions)
+            # inputData["Predictions"] = predictions
+            # result = inputData
+            # result.to_csv("predictions.csv", sep=',', index=False, encoding='utf-8')
             return render_template('trueoutput.html')
 
 # Page that shows trained tree (available by get, so currently just for checking)
