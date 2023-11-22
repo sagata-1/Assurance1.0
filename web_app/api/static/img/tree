@@ -1,0 +1,41 @@
+digraph G {
+node [shape="box", style="filled, rounded", color="orange", fontname="helvetica"];
+graph [ranksep=equally, splines=polyline];
+edge [fontname="helvetica"];
+    0 [label="Node #0
+ Feature provider_IPAnnualDeductibleAmt_std <= 67011.94236763068"];
+    0 -> 1;
+    0 -> 2;
+    1 [label="Node #1
+ Feature diag1_InscClaimAmtReimbursed_mean <= 82.15639493855191"];
+    1 -> 3;
+    1 -> 4;
+    2 [label="Node #2
+ Feature banel_InscClaimAmtReimbursed_mean <= 5178.742618465754"];
+    2 -> 5;
+    2 -> 6;
+    3 [label="Node #3
+ Feature diag1_OPAnnualDeductibleAmt_mean <= 2971.0991053544935"];
+    3 -> 7;
+    3 -> 8;
+    4 [label="Node #4
+ Feature period <= 1.5473377527582997"];
+    4 -> 9;
+    4 -> 10;
+    5 [label="Node #5
+ Feature diag1_OPAnnualReimbursementAmt_std <= 699.3746238615607"];
+    5 -> 11;
+    5 -> 12;
+    6 [label="Node #6
+ Feature banel_NoOfMonths_PartBCov_mean <= 9.27056974108173"];
+    6 -> 13;
+    6 -> 14;
+    7 [label="Not-Fraud"]
+    8 [label="Not-Fraud"]
+    9 [label="Not-Fraud"]
+    10 [label="Fraud", fillcolor="#74baed"]
+    11 [label="Fraud", fillcolor="#74baed"]
+    12 [label="Fraud", fillcolor="#74baed"]
+    13 [label="Fraud", fillcolor="#74baed"]
+    14 [label="Not-Fraud"]
+}
