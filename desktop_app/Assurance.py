@@ -257,7 +257,7 @@ def dataset1report():
         predictions.append(reverse_conversion[int(tree_model_predict(chromosome_length,feature_data[i, :], eng_vec, prediction_category))])
     # print(predictions)
     inputData["Predictions"] = predictions
-    result = inputData
+    result = inputData.iloc[:, :-1]
     data_subset = result.iloc[:, inputData.shape[1] - 5:]
     data_subset = data_subset.to_dict()
     print(data_subset)
