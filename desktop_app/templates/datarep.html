@@ -185,18 +185,38 @@
                             <thead>
                                 <tr>
                                     <th scope="col"><input class="form-check-input" type="checkbox"></th>
-                                    <th scope="col">BeneID</th>
+                                    {% for name in data_subset%}
+                                        <th scope="col">{{name}}</th>
+                                    {% endfor %}
+                                    <!-- <th scope="col">BeneID</th>
                                     <th scope="col">ClaimID</th>
                                     <th scope="col">ClaimStartDt</th>
                                     <th scope="col">ClaimEndDt</th>
                                     <th scope="col">Provider</th>
                                     <th scope="col" class="text-center">InscClaimAmtReimbursed</th>
-                                    <th scope="col" class="text-center">Fraud / Non Fraud</th>
+                                    <th scope="col" class="text-center">Fraud / Non Fraud</th> -->
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td><input class="form-check-input" type="checkbox"></td>
+                                    {% for i in range(length) %}
+                                    <tr>
+                                        <td><input class="form-check-input" type="checkbox"></td>
+                                        {% for data in data_subset %}
+                                            {% if data_subset[data][i] == "Fraud" %}
+                                                <td class="text-center">
+                                                    <button type="button" class="btn" style="background-color: #25476A; color: #fff;">Yes</button>
+                                                </td>
+                                            {% elif data_subset[data][i] == "Not-Fraud"%}
+                                                <td class="text-center">
+                                                    <button type="button" class="btn" style="background-color: #FA9F1B; color: #fff;">No</button>
+                                                </td>
+                                            {% else %}
+                                                <td>{{data_subset[data][i]}}</td>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </tr>
+                                    {% endfor %}
+                                    <!-- <td><input class="form-check-input" type="checkbox"></td>
                                     <td>BENE11001</td>
                                     <td>CLM392397</td>
                                     <td>2009-06-02</td>
@@ -264,7 +284,7 @@
                                     <td class="text-center">
                                         <button type="button" class="btn" style="background-color: #FA9F1B; color: #fff;">No</button>
                                     </td>
-                                </tr>
+                                </tr> -->
                             </tbody>
                         </table>
                     </div>

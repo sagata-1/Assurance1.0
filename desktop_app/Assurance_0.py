@@ -14,25 +14,22 @@ import base64
 
 app = Flask(__name__)
 
-if getattr(sys, 'frozen', False):
-    # Running in a PyInstaller bundle
-    graphviz_binaries_path = os.path.join(sys._MEIPASS, 'graphviz_binaries')
-    graphviz_plugins_path = os.path.join(sys._MEIPASS, 'graphviz_plugins')
+# if getattr(sys, 'frozen', False):
+#     # Running in a PyInstaller bundle
+#     # graphviz_binaries_path = os.path.join(sys._MEIPASS, 'graphviz_binaries')
 
-    # Set environment variables for Graphviz
-    os.environ['GRAPHVIZ_DOT'] = os.path.join(graphviz_binaries_path, 'dot')
-    os.environ['PATH'] += os.pathsep + graphviz_binaries_path
-    os.environ['GVPLUGINPATH'] = graphviz_plugins_path
-else:
-    # Normal execution
-    os.environ['GRAPHVIZ_DOT'] = '/usr/local/bin/dot'
+#     # Set environment variables for Graphviz
+#     os.environ['GRAPHVIZ_DOT'] = '/usr/local/bin/dot'
+# else:
+#     # Normal execution
+#     os.environ['GRAPHVIZ_DOT'] = '/usr/local/bin/dot'
 
 # Configure session to use filesystem- for flash
-app.config["SESSION_PERMANENT"] = False
-app.config["SESSION_TYPE"] = "filesystem"
-SECRET_KEY = os.urandom(32)
-app.config['SECRET_KEY'] = SECRET_KEY
-Session(app)
+# app.config["SESSION_PERMANENT"] = False
+# app.config["SESSION_TYPE"] = "filesystem"
+# SECRET_KEY = os.urandom(32)
+# app.config['SECRET_KEY'] = SECRET_KEY
+# Session(app)
 
 ui = FlaskUI(app=app, server="flask")
 
@@ -55,6 +52,7 @@ number_of_leaves = 2 ** number_of_tree_levels
 chromosome_length = 2 * number_of_nodes + number_of_leaves
 # Placeholder for personTree array
 person_tree = np.zeros(chromosome_length)
+data_subset = pd.DataFrame()
 
 # Initialize arrays and variables
 feature_data = np.zeros((number_of_runs, number_of_features))
@@ -171,12 +169,17 @@ def dataset():
 @app.route("/download-csv")
 def download_csv():
     # Save file as csv, indicate issues if it exists
+    global result
+    global file_path
+    global inputData
+    global data_subset
     try:
         file = os.path.join(file_path, 'predictions.csv')
+        print(file)
         # Saving the DataFrame to CSV on the Desktop
         result.to_csv(file, index=False)
         flash("File downloaded as predictions.csv in Desktop folder")
-        return render_template('datarep.html', data_url=data_url)
+        return render_template('datarep.html', data_url=data_url, data_subset=data_subset, length=result.shape[0])
     except Exception as e:
         return jsonify({"error": str(e)})
             
@@ -217,7 +220,7 @@ def dataset1report():
     global eng_vec
     global dot_data
     global data_url
-
+    global data_subset
     # Global variables
     global number_of_features
     global number_of_runs
@@ -238,6 +241,7 @@ def dataset1report():
     response_categories = np.zeros(number_of_runs)
     # eng_vec = np.zeros(chromosome_length)
     dict_conversion = {"Not-Fraud": 1, "Fraud": 2}
+    reverse_conversion = {1: "Not-Fraud", 2: "Fraud"}
     for i in range(number_of_runs):
         response_categories[i] = dict_conversion[inputData.iloc[i, number_of_features]]
         for j in range(number_of_features):
@@ -245,11 +249,14 @@ def dataset1report():
     # Make predictions
     predictions = []
     for i in range(number_of_runs):
-        predictions.append(int(tree_model_predict(chromosome_length,feature_data[i, :], eng_vec, prediction_category)))
+        predictions.append(reverse_conversion[int(tree_model_predict(chromosome_length,feature_data[i, :], eng_vec, prediction_category))])
     # print(predictions)
     inputData["Predictions"] = predictions
     result = inputData
-    return render_template('datarep.html', data_url=data_url)
+    data_subset = result.iloc[:, inputData.shape[1] - 5:]
+    data_subset = data_subset.to_dict()
+    print(data_subset)
+    return render_template('datarep.html', data_url=data_url, data_subset=data_subset, length=result.shape[0])
 
 @app.route("/dataset2report", methods=['GET'])
 def dataset2report():
