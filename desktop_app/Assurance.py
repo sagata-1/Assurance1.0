@@ -6,18 +6,33 @@ from numpy import loadtxt
 import pandas as pd
 from numpy import sort
 import os
+import sys
 import time
 import random
 import graphviz
+import base64
 
 app = Flask(__name__)
 
-# # Configure session to use filesystem
-# app.config["SESSION_PERMANENT"] = False
-# app.config["SESSION_TYPE"] = "filesystem"
-# SECRET_KEY = os.urandom(32)
-# app.config['SECRET_KEY'] = SECRET_KEY
-# Session(app)
+if getattr(sys, 'frozen', False):
+    # Running in a PyInstaller bundle
+    graphviz_binaries_path = os.path.join(sys._MEIPASS, 'graphviz_binaries')
+    graphviz_plugins_path = os.path.join(sys._MEIPASS, 'graphviz_plugins')
+
+    # Set environment variables for Graphviz
+    os.environ['GRAPHVIZ_DOT'] = os.path.join(graphviz_binaries_path, 'dot')
+    os.environ['PATH'] += os.pathsep + graphviz_binaries_path
+    os.environ['GVPLUGINPATH'] = graphviz_plugins_path
+else:
+    # Normal execution
+    os.environ['GRAPHVIZ_DOT'] = '/usr/local/bin/dot'
+
+# Configure session to use filesystem- for flash
+app.config["SESSION_PERMANENT"] = False
+app.config["SESSION_TYPE"] = "filesystem"
+SECRET_KEY = os.urandom(32)
+app.config['SECRET_KEY'] = SECRET_KEY
+Session(app)
 
 ui = FlaskUI(app=app, server="flask")
 
@@ -26,6 +41,7 @@ training_complete = 0
 # Legacy varialble- to keep track of features selected for (might be used again)
 names = []
 inputData = pd.DataFrame()
+result = pd.DataFrame()
 # global selection_model
 large_value = 1000000000
 
@@ -45,7 +61,11 @@ feature_data = np.zeros((number_of_runs, number_of_features))
 min_feature_value = np.zeros(number_of_features)
 max_feature_value = np.zeros(number_of_features)
 response_categories = np.zeros(number_of_runs)
+eng_vec = np.zeros(chromosome_length)
 prediction_category = 0
+dot_data = ""
+file_path = ""
+data_url = ""
 
 @app.route("/", methods=['GET', "POST"])
 def index():
@@ -61,6 +81,10 @@ def dataset():
     global training_complete
     global inputData
     global large_value
+    global result
+    global eng_vec
+    global dot_data
+    global data_url
 
     # Global variables
     global number_of_features
@@ -79,6 +103,7 @@ def dataset():
     global max_feature_value
     global response_categories
     global prediction_category
+    global file_path
 
     # Debug statements- checking that we're transitioning between pages
     print(training_complete)
@@ -96,10 +121,17 @@ def dataset():
         if training_complete == 0:
             print(request.files)
             inputData = pd.read_csv(request.files["image"])
-            print(inputData)
+            print(inputData.shape)
+            number_of_runs = inputData.shape[0]
+            number_of_features = inputData.shape[1] - 1
+            feature_data = np.zeros((number_of_runs, number_of_features))
+            min_feature_value = np.zeros(number_of_features)
+            max_feature_value = np.zeros(number_of_features)
+            response_categories = np.zeros(number_of_runs)
+            # eng_vec = np.zeros(chromosome_length)
             dict_conversion = {"Not-Fraud": 1, "Fraud": 2}
             for i in range(number_of_runs):
-                response_categories[i] = dict_conversion[inputData.iloc[i, 48]]
+                response_categories[i] = dict_conversion[inputData.iloc[i, number_of_features]]
                 for j in range(number_of_features):
                     feature_data[i, j] = inputData.iloc[i, j]
             # Calculate mins and maxes for the features
@@ -118,25 +150,41 @@ def dataset():
             end = time.time()
             print(f"Running time: {end - start}")
             dot_data = array_to_dot(eng_vec, inputData)
-            # graph = graphviz.Source(dot_data)
-            # graph.format = 'png'
-            # graph.render(filename='tree', directory='static/img/', view=False)
-            # Backend check that everything is working fine
-            print(eng_vec)
-            # Potentially loading predictions into csv, currently debugging
-            # predictions = []
-            # for i in range(number_of_runs):
-            #     predictions.append(int(tree_model_predict(chromosome_length,feature_data[i, :], eng_vec, prediction_category)))
-            # # print(predictions)
-            # inputData["Predictions"] = predictions
-            # result = inputData
-            # result.to_csv("predictions.csv", sep=',', index=False, encoding='utf-8')
-            return render_template('trueoutput.html')
+            training_complete = 0
+            try:
+                # Saving the DataFrame to CSV on the Desktop
+                home_directory = os.path.expanduser('~')
+                file_path = os.path.join(home_directory, 'Desktop')
+                graph = graphviz.Source(dot_data)
+                graph.format = 'png'
+                # graph.render(filename='tree', directory=file_path, view=False)
+                # Render the graph to a binary string in PNG format
+                png_data = graph.pipe(format='png')
 
+                # Encode the binary data to base64 string
+                encoded_png = base64.b64encode(png_data).decode('utf-8')
+                data_url = f"data:image/png;base64,{encoded_png}"
+                return render_template('trueoutput.html', data_url=data_url)
+            except Exception as e:
+                return jsonify({"error": str(e)})
+            
+@app.route("/download-csv")
+def download_csv():
+    # Save file as csv, indicate issues if it exists
+    try:
+        file = os.path.join(file_path, 'predictions.csv')
+        # Saving the DataFrame to CSV on the Desktop
+        result.to_csv(file, index=False)
+        flash("File downloaded as predictions.csv in Desktop folder")
+        return render_template('datarep.html', data_url=data_url)
+    except Exception as e:
+        return jsonify({"error": str(e)})
+            
 # Page that shows trained tree (available by get, so currently just for checking)
 @app.route('/trueoutput', methods=["GET"])
 def true_output():
-    return render_template('trueoutput.html')
+    global data_url
+    return render_template('trueoutput.html', data_url=data_url)
 
 @app.route("/dataset2", methods=['GET'])
 def dataset2():
@@ -160,7 +208,48 @@ def decision_tree3():
 
 @app.route("/dataset1report", methods=['POST'])
 def dataset1report():
-    return render_template('datarep.html')
+    global result
+    global inputData
+    global eng_vec
+    global prediction_category
+    global chromosome_length
+    global feature_data
+    global eng_vec
+    global dot_data
+    global data_url
+
+    # Global variables
+    global number_of_features
+    global number_of_runs
+    global number_of_classes
+    global number_of_tree_levels
+    global number_of_nodes
+    global number_of_leaves
+    global chromosome_length
+    
+    # Read in data
+    inputData = pd.read_csv(request.files["image"])
+    print(inputData.shape)
+    number_of_runs = inputData.shape[0]
+    number_of_features = inputData.shape[1] - 1
+    feature_data = np.zeros((number_of_runs, number_of_features))
+    min_feature_value = np.zeros(number_of_features)
+    max_feature_value = np.zeros(number_of_features)
+    response_categories = np.zeros(number_of_runs)
+    # eng_vec = np.zeros(chromosome_length)
+    dict_conversion = {"Not-Fraud": 1, "Fraud": 2}
+    for i in range(number_of_runs):
+        response_categories[i] = dict_conversion[inputData.iloc[i, number_of_features]]
+        for j in range(number_of_features):
+            feature_data[i, j] = inputData.iloc[i, j]
+    # Make predictions
+    predictions = []
+    for i in range(number_of_runs):
+        predictions.append(int(tree_model_predict(chromosome_length,feature_data[i, :], eng_vec, prediction_category)))
+    # print(predictions)
+    inputData["Predictions"] = predictions
+    result = inputData
+    return render_template('datarep.html', data_url=data_url)
 
 @app.route("/dataset2report", methods=['GET'])
 def dataset2report():

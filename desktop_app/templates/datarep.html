@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>DASHMIN - Bootstrap Admin Template</title>
+    <title>Assurance</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <meta content="" name="keywords">
     <meta content="" name="description">
@@ -57,7 +57,7 @@
                         </div>
                     </div>
                     <div class="ms-3">
-                        <h6 class="mb-0">Jhon Doe</h6>
+                        <h6 class="mb-0">John Doe</h6>
                         <span>Admin</span>
                     </div>
                 </div>
@@ -132,6 +132,13 @@
             <!-- Navbar End -->
 
             <!-- Sales Chart Start -->
+            {% if get_flashed_messages() %}
+            <header>
+                <div class="alert alert-primary mb-0 text-center" role="alert">
+                    {{ get_flashed_messages() | join(" ") }}
+                </div>
+            </header>
+        {% endif %}
             <div class="container-fluid pt-4 px-4">
                 <div class="row g-4">
                     <div class="col-sm-12 col-xl-12">
@@ -141,7 +148,7 @@
                             </div>
                             <div class="w-100 d-flex justify-content-center">
                                 <div>
-                                    <img class="img-fluid" src="static/img/tree.png" class="h-100"/>
+                                    <img class="img-fluid" src="{{data_url}}" class="h-100"/>
                                 </div>
                             </div>
                         </div>
@@ -163,6 +170,7 @@
                                     </form>
                                     <br>
                                     <a href="/dataset"><button class="btn btn-primary">Retrain Model</button></a>
+                                    <a href="/download-csv"><button class="btn btn-primary">Download data with predictions</button></a>
                                 </div>
                             </div>
                         </div>
