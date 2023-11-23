@@ -137,11 +137,14 @@
                     <div class="col-sm-12 col-xl-12">
                         <div class="bg-light text-center rounded p-4 shadow">
                             <div class="d-flex align-items-center justify-content-between mb-4">
-                                <h6 class="mb-0">Optimal triggers and threshold values in inpatient data to find wasteful health insurance claims</h6>
+                                {% if old_exists %}
+                                    <a href="/old_model"><button class="btn btn-primary">View previously trained model</button></a>
+                                {% endif %}
+                                <h6 class="mb-0">Optimal triggers and threshold values in outpatient data to find wasteful health insurance claims</h6>
                             </div>
                             <div class="w-100 d-flex justify-content-center">
                                 <div>
-                                    <img class="img-fluid" src="{{data_url}}" class="h-100"/>
+                                    <img class="img-fluid" src="static/img/tree.png" class="h-100"/>
                                 </div>
                             </div>
                         </div>

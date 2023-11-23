@@ -36,6 +36,9 @@
         // Wait for the DOM to be fully loaded
         document.addEventListener("DOMContentLoaded", function() {
             document.getElementById("autoSubmitForm").submit();
+            document.getElementById('myButton').addEventListener('click', function() {
+                document.getElementById('myDiv').innerHTML = '<img class="img-fluid" src="static/img/tree.png" class="h-100"/>';
+            });
         });
     </script>
     <div class="container-fluid position-relative bg-white d-flex p-0">
@@ -166,6 +169,10 @@
                                     <form action="/dataset" id="autoSubmitForm" method="post" enctype="multipart/form-data">
                                         <input type="hidden" name="image" class="form-control" id="image" />
                                     </form>
+                                    <br>
+                                    <div id="myDiv">
+                                        <button id="myButton" class="btn btn-primary">See previously trained model</button>
+                                    </div>
                             </div>
                         </div>
                     </div>
