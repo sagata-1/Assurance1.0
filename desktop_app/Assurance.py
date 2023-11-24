@@ -6,12 +6,14 @@ from numpy import loadtxt
 import pandas as pd
 from numpy import sort
 import os
-import sys
+import sys, io
 import time
 import random
 import graphviz
 import base64
 
+buffer = io.StringIO()
+sys.stdout = sys.stderr = buffer 
 app = Flask(__name__)
 
 if getattr(sys, 'frozen', False):
@@ -248,7 +250,6 @@ def dataset1report():
     dict_conversion = {"Not-Fraud": 1, "Fraud": 2}
     reverse_conversion = {1: "Not-Fraud", 2: "Fraud"}
     for i in range(number_of_runs):
-        response_categories[i] = dict_conversion[inputData.iloc[i, number_of_features]]
         for j in range(number_of_features):
             feature_data[i, j] = inputData.iloc[i, j]
     # Make predictions
@@ -257,7 +258,7 @@ def dataset1report():
         predictions.append(reverse_conversion[int(tree_model_predict(chromosome_length,feature_data[i, :], eng_vec, prediction_category))])
     # print(predictions)
     inputData["Predictions"] = predictions
-    result = inputData.iloc[:, :-1]
+    result = inputData
     data_subset = result.iloc[:, inputData.shape[1] - 5:]
     data_subset = data_subset.to_dict()
     print(data_subset)
