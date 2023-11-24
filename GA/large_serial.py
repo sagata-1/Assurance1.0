@@ -43,6 +43,7 @@ def main():
     global number_of_features
     # Read in the data
     dict_conversion = {"Not-Fraud": 1, "Fraud": 2}
+    reverse_conversion = {1: "Not-Fraud", 2: "Fraud"}
     for i in range(number_of_runs):
         response_categories[i] = dict_conversion[inputData.iloc[i, 48]]
         for j in range(number_of_features):
@@ -117,9 +118,9 @@ def main():
     # print(error_value)
     start = time.time()
     eng_vec = np.zeros(chromosome_length)
-    val = deterministic_ga(chromosome_length, 10, 500, eng_vec)
+    val = deterministic_ga(chromosome_length, 50, 300, eng_vec)
     print(eng_vec)
-    print(f"{val:.2f}")
+    print(f"{val[0]:.2f}")
     end = time.time()
     print(f"Running time: {end - start}")
     dot_data = array_to_dot(eng_vec, inputData)
@@ -132,13 +133,15 @@ def main():
     graph.format = 'png'
     graph.render(filename='tree', directory='', view=True)
     # Make predictions and append them to the pandas dataframe and store it in a new file
-    print(eng_vec)
     predictions = []
     for i in range(number_of_runs):
-        predictions.append(int(tree_model_predict(chromosome_length,feature_data[i, :], eng_vec, prediction_category)))
+        predictions.append(reverse_conversion[int(tree_model_predict(chromosome_length,feature_data[i, :], eng_vec, prediction_category))])
     # print(predictions)
     inputData["Predictions"] = predictions
     result = inputData[["PotentialFraud", "Predictions"]]
+    accuracy = accuracy_score(inputData["PotentialFraud"], inputData["Predictions"])
+    print("Final Accuracy:", accuracy)
+    print("Not-Fraud and Fraud incorrect proportions", val[1])
     result.to_csv("predictions.csv", sep=',', index=False, encoding='utf-8')
 
 # def parallel_estimate_prediction_error(chromosome_length, person_tree, error_value, individual_point, response_category):
@@ -194,32 +197,36 @@ def estimate_prediction_error(pool, chromosome_length, person_tree, error_value)
     imprecision = 0
     not_fraud = 0
     fraud = 0
+    inacc = 0
 
     for i in range(number_of_runs):
         individual_point = feature_data[i, :]
 
         prediction_categor = tree_model_predict(chromosome_length, individual_point, person_tree, prediction_category)
         # print(prediction_categor, response_categories[i], individual_point)
-        # if int(response_categories[i]) == 1:
-        #     if int(prediction_categor) != int(response_categories[i]) and int(response_categories[i]) == 1:
-        #         imprecision += 1
-        #     not_fraud += 1
-        # elif int(response_categories[i]) == 2:
-        #     if int(prediction_categor) != int(response_categories[i]):
-        #         insensitivity += 1
-        #     fraud += 1
+        if int(response_categories[i]) == 1:
+            if int(prediction_categor) != int(response_categories[i]) and int(response_categories[i]) == 1:
+                imprecision += 1
+            not_fraud += 1
+        elif int(response_categories[i]) == 2:
+            if int(prediction_categor) != int(response_categories[i]):
+                insensitivity += 1
+            fraud += 1
         if int(prediction_categor) != int(response_categories[i]):
-            error_value += 1
+            inacc += 1
 
-    # TODO, consider node complexity
     # print(error_value)
     # print(number_of_runs)
     
-    error_value /= (number_of_runs)
+    # error_value /= (number_of_runs)
     # error_value = (((imprecision / not_fraud) + (insensitivity / fraud)) / 2)
+    error_value = 0.9*((0.3*(imprecision / not_fraud) + (insensitivity / fraud)) / 2) + (inacc / number_of_runs)
+    # error_value = inacc / number_of_runs
+    # error_value = 0.4*(insensitivity / fraud) + (inacc / number_of_runs)
+    # error_value =  (insensitivity / fraud)
     # print("Test", (imprecision / not_fraud), (insensitivity / fraud))
         
-    return (error_value, 0)
+    return (error_value, 0.9*((0.3*(imprecision / not_fraud) + (insensitivity / fraud)) / 2), (imprecision / not_fraud), (insensitivity / fraud))
 
 def tree_model_predict(chromosome_length, individual_point, person_tree, prediction_category):
     prediction_categor = 0
@@ -325,11 +332,7 @@ def a4_translate_from_engineering(number_decision_variables, engineering_x_vecto
 
 
 def deterministic_ga(number_decision_variables, number_in_population, number_of_generations, engineering_x_vector):
-    # Assuming a4Function and a4TranslateToEngineering are defined elsewhere
-    # number_of_tree_levels = 2
-    # number_of_nodes = 1 + sum(2 ** i for i in range(1, number_of_tree_levels))
-    # number_of_leaves = 2 ** number_of_tree_levels
-    # number_decision_variables = number_decision_variables
+    # Legacy
     pool = 0
     # Define the scalar variables
     e_elitist = int(0.1 * number_in_population)
@@ -340,6 +343,7 @@ def deterministic_ga(number_decision_variables, number_in_population, number_of_
     # Define the vectors and matrices
     current_objective_values = np.zeros(number_in_population)
     normalizer = np.zeros(number_in_population)
+    proportions = np.zeros((number_in_population, 2))
     next_objective_values = np.zeros(number_in_population)
     # Initialise first generation
     temp = ()
@@ -357,11 +361,13 @@ def deterministic_ga(number_decision_variables, number_in_population, number_of_
             print(temp)
             current_objective_values[i_index] = temp[0]
             normalizer[i_index] = temp[1]
+            proportions[i_index] = (temp[2], temp[3])
         # Sort the population
         sort_index = np.argsort(current_objective_values)
         current_generation = current_generation[sort_index, :]
         current_objective_values = current_objective_values[sort_index]
         normalizer = normalizer[sort_index]
+        proportions = proportions[sort_index]
 
         # Make elitist subset keeping top e_elitist solutions
         next_generation[:e_elitist, :] = current_generation[:e_elitist, :]
@@ -393,10 +399,6 @@ def deterministic_ga(number_decision_variables, number_in_population, number_of_
             else:
                 next_generation[i_index, :] = second_child
 
-        # if (g_index == 25):
-        #     number_of_nodes = 1 + sum(2 ** i for i in range(1, number_of_tree_levels))
-        #     number_of_leaves = 2 ** number_of_tree_levels
-        #     number_decision_variables = 2 * number_of_nodes + number_of_leaves
         # Copy over the current generation
         current_generation = next_generation.copy()
 
@@ -406,28 +408,18 @@ def deterministic_ga(number_decision_variables, number_in_population, number_of_
         temp = a4_function(pool, number_decision_variables, x_vector, class_tree_translate_to_engineering, estimate_prediction_error, engineering_x_vector)
         current_objective_values[i_index] = temp[0]
         normalizer[i_index] = temp[1]
+        proportions[i_index] = (temp[2], temp[3])
 
     # Sort the population
     sort_index = np.argsort(current_objective_values)
     current_generation = current_generation[sort_index, :]
     current_objective_values = current_objective_values[sort_index]
     normalizer = normalizer[sort_index]
+    proportions = proportions[sort_index]
 
     x_vector = current_generation[0, :]
     a4_translate_to_engineering(number_decision_variables, x_vector, class_tree_translate_to_engineering, engineering_x_vector)
-    # pool.close()
-    # pool.join()
-    return current_objective_values[0] - normalizer[0]
-    # if current_objective_values[0] < 0 and current_objective_values[0] >= -1:
-    #     val =  -1 * current_objective_values[0]
-    # elif current_objective_values[0] > 1:
-    #     val =  (current_objective_values[0] / current_objective_values[0])
-    # elif current_objective_values[0] < -1:
-    #     val = (current_objective_values[0] / current_objective_values[0])
-    # else:
-    #     val = current_objective_values[0]
-    # if val > max_val:
-    #     max_val = val
+    return (current_objective_values[0] - normalizer[0], proportions[0])
 
 
 if __name__ == "__main__":
