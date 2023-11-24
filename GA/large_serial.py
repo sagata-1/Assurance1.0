@@ -220,13 +220,13 @@ def estimate_prediction_error(pool, chromosome_length, person_tree, error_value)
     
     # error_value /= (number_of_runs)
     # error_value = (((imprecision / not_fraud) + (insensitivity / fraud)) / 2)
-    error_value = 0.9*((0.3*(imprecision / not_fraud) + (insensitivity / fraud)) / 2) + (inacc / number_of_runs)
+    error_value = 0.9*((0.2*(imprecision / not_fraud) + (insensitivity / fraud)) / 2) + (inacc / number_of_runs)
     # error_value = inacc / number_of_runs
     # error_value = 0.4*(insensitivity / fraud) + (inacc / number_of_runs)
     # error_value =  (insensitivity / fraud)
     # print("Test", (imprecision / not_fraud), (insensitivity / fraud))
         
-    return (error_value, 0.9*((0.3*(imprecision / not_fraud) + (insensitivity / fraud)) / 2), (imprecision / not_fraud), (insensitivity / fraud))
+    return (error_value, 0.9*((0.2*(imprecision / not_fraud) + (insensitivity / fraud)) / 2), (imprecision / not_fraud), (insensitivity / fraud))
 
 def tree_model_predict(chromosome_length, individual_point, person_tree, prediction_category):
     prediction_categor = 0
