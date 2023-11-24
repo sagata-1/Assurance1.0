@@ -1,10 +1,14 @@
 import random
 import numpy as np
+from numpy import sort
 import pandas as pd
-from basicGA import deterministic_ga
 import multiprocessing as mp
 import time
 import gc
+from xgboost import XGBClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+from sklearn.feature_selection import SelectFromModel
 import graphviz
 
 # Assuming that inputData is a pandas DataFrame that contains the required data
@@ -34,6 +38,9 @@ prediction_category = 0
 
 def main():
     error_value = 0
+    global response_categories
+    global feature_data
+    global number_of_features
     # Read in the data
     dict_conversion = {"Not-Fraud": 1, "Fraud": 2}
     for i in range(number_of_runs):
@@ -44,6 +51,56 @@ def main():
     for j in range(number_of_features):
         min_feature_value[j] = np.min(feature_data[:, j])
         max_feature_value[j] = np.max(feature_data[:, j])
+    
+    # Preprocess classes for fitting into 0 - 1 instead of 1 - 2
+    y = np.zeros(number_of_runs)
+    for i in range(number_of_runs):
+        y[i] = int(response_categories[i] - 1)
+    # Split data for xgboost feature selection
+    X_train, X_test, y_train, y_test = train_test_split(feature_data, y, test_size=0.2, random_state=7)
+    # Feature selection with xgboost
+    model = XGBClassifier()
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
+    predictions = [round(value) for value in y_pred]    
+    accuracy = accuracy_score(y_test, predictions)
+    print("Accuracy: %.2f%%" % (accuracy * 100.0))  
+    
+    thresholds = sort(model.feature_importances_)
+    max_acc = -1
+    true_thresh = -1
+    for thresh in thresholds:
+        selection = SelectFromModel(model, threshold=thresh, prefit=True)
+        select_X_train = selection.transform(X_train)
+        
+        selection_model = XGBClassifier()
+        selection_model.fit(select_X_train, y_train)
+        
+        select_X_test = selection.transform(X_test)
+        y_pred = selection_model.predict(select_X_test)
+        
+        predictions = [round(value) for value in y_pred]
+        
+        accuracy = accuracy_score(y_test, predictions)
+        if accuracy >= max_acc:
+            max_acc = accuracy
+            true_thresh = thresh
+        print("Thresh=%.3f, n=%d, Accuracy: %.2f%%" % (thresh, select_X_train.shape[1], accuracy*100.0))
+    selection = SelectFromModel(model, threshold=true_thresh, prefit=True)
+    feature_data = selection.transform(feature_data)
+    # selection_model = XGBClassifier()
+    # selection_model.fit(feature_data, y)
+    # y_pred = selection_model.predict(feature_data)
+    # predictions = [round(value) for value in y_pred]
+    # inputData["Predictions"] = predictions
+    # result = inputData[["PotentialFraud", "Predictions"]]
+    # result.to_csv("predictions.csv", sep=',', index=False, encoding='utf-8')
+    names = []
+    for i in range(len(model.feature_importances_)):
+        if model.feature_importances_[i] >= true_thresh:
+            names.append(inputData.iloc[:, [i]].columns[0])
+    print(len(names))
+    number_of_features = len(names)
 
     # # Define chromosomeVec and individualPoint with example values
     # chromosome_vec = np.array([0.7, 0.338, 0.9, 0.7, 0.8, 0.7, 0.1, 0.1, 0.5, 0.8])  # Example values
@@ -60,7 +117,7 @@ def main():
     # print(error_value)
     start = time.time()
     eng_vec = np.zeros(chromosome_length)
-    val = deterministic_ga(chromosome_length, 30, 30, eng_vec)
+    val = deterministic_ga(chromosome_length, 10, 500, eng_vec)
     print(eng_vec)
     print(f"{val:.2f}")
     end = time.time()
@@ -143,24 +200,24 @@ def estimate_prediction_error(pool, chromosome_length, person_tree, error_value)
 
         prediction_categor = tree_model_predict(chromosome_length, individual_point, person_tree, prediction_category)
         # print(prediction_categor, response_categories[i], individual_point)
-        if int(response_categories[i]) == 1:
-            if int(prediction_categor) != int(response_categories[i]) and int(response_categories[i]) == 1:
-                imprecision += 1
-            not_fraud += 1
-        elif int(response_categories[i]) == 2:
-            if int(prediction_categor) != int(response_categories[i]):
-                insensitivity += 1
-            fraud += 1
-        # if int(prediction_categor) != int(response_categories[i]):
-        #     error_value += 1
+        # if int(response_categories[i]) == 1:
+        #     if int(prediction_categor) != int(response_categories[i]) and int(response_categories[i]) == 1:
+        #         imprecision += 1
+        #     not_fraud += 1
+        # elif int(response_categories[i]) == 2:
+        #     if int(prediction_categor) != int(response_categories[i]):
+        #         insensitivity += 1
+        #     fraud += 1
+        if int(prediction_categor) != int(response_categories[i]):
+            error_value += 1
 
     # TODO, consider node complexity
     # print(error_value)
     # print(number_of_runs)
     
-    # error_value /= (number_of_runs)
-    error_value = (((imprecision / not_fraud) + (insensitivity / fraud)) / 2)
-    print("Test", (imprecision / not_fraud), (insensitivity / fraud))
+    error_value /= (number_of_runs)
+    # error_value = (((imprecision / not_fraud) + (insensitivity / fraud)) / 2)
+    # print("Test", (imprecision / not_fraud), (insensitivity / fraud))
         
     return (error_value, 0)
 
