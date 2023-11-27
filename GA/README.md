@@ -1,6 +1,6 @@
-# Today's report-November 25th 2023
+# Code report-November 26th 2023
 ## Main Focus and Set-Up
-Today's main focus was to optimize the GA so it gives more accurate predictions. Essentially, the problem was that GA was not behaving ideally no matter what metric was used for fitness evaluation of the trees. If accuracy was used, the the GA was able to identify a 90% accurate decision tree, but in actuality, it was completely useless, since the tree's output was to predict that everything was "Not-Fraud". Alternatively, when using insensitivity and imprecision as the accuracy measures (where imprecision is the proportion of "Not-Fraud" cases evaluated incorrectly and insensitivy the same for "Fraud"), the output was 78% accurate i.e. it got stuff wrong more often than a flat, predict everything as "Not-Fraud" case, which is not ideal.
+The overall main focus for the past 3-4 days has been to optimize the GA so it gives more accurate predictions. Essentially, the problem was that GA was not behaving ideally no matter what metric was used for fitness evaluation of the trees. If accuracy was used, the the GA was able to identify a 90% accurate decision tree, but in actuality, it was completely useless, since the tree's output was to predict that everything was "Not-Fraud". Alternatively, when using insensitivity and imprecision as the accuracy measures (where imprecision is the proportion of "Not-Fraud" cases evaluated incorrectly and insensitivy the same for "Fraud"), the output was 78% accurate i.e. it got stuff wrong more often than a flat, predict everything as "Not-Fraud" case, which is not ideal.
 
 ### Important lines of code (come back to this after you read all the steps, it'll make more sense then)
 - All altered code lines are in `large_serial.py`
@@ -24,4 +24,7 @@ At this stage, I basically made the fitness function return a tuple of 4 things.
 Here, I tried a few different functions to minimize, a mix of first just the fraud cases + inaccuracies, then non-fraud + fraud + inaccuracies, then different weights of these. The important lines for this were lines 221-226, of `large_serial.py`, and you should see the functions either commented out or in use. The error value variable is the result that is being minimized by the GA.
 
 ## Step 5:
-Tried f1 function, f1 + accuracy + weight precision + weighted accuracy
+Tried f1 function, f1 + accuracy + weight precision + weighted accuracy 
+
+## Step 6:
+Oversampling tried, depth 4 tree tried, over all combinations of depth 3 so far. Possible next steps include going into GA literature review, poisson distribution or autmating tree depth so that becomes another parameter that GA can choose from.
