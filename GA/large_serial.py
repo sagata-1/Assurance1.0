@@ -13,15 +13,22 @@ import graphviz
 
 # Assuming that inputData is a pandas DataFrame that contains the required data
 inputData = pd.read_csv("../data/grouped(AutoRecovered)_2.csv")
+oversampled_fraud = inputData[inputData["PotentialFraud"] == "Fraud"]
+for _ in range(3):
+    oversampled_fraud = pd.concat([oversampled_fraud, oversampled_fraud], ignore_index=True)
+oversampled_fraud = pd.concat([oversampled_fraud, inputData[inputData["PotentialFraud"] == "Fraud"]], ignore_index=True)
+inputData = pd.concat([inputData, oversampled_fraud], ignore_index=True)
+inputData = pd.concat([inputData, inputData], ignore_index=True)
 
 # Large value, should be larger than anything objective function can hit
 large_value = 1000000000
 
 # Global variables
 number_of_features = 48
-number_of_runs = 5410
+number_of_runs = len(inputData.index)
+print(number_of_runs)
 number_of_classes = 2
-number_of_tree_levels = 3
+number_of_tree_levels = 4
 number_of_nodes = 1 + sum(2 ** i for i in range(1, number_of_tree_levels))
 number_of_leaves = 2 ** number_of_tree_levels
 chromosome_length = 2 * number_of_nodes + number_of_leaves
@@ -118,7 +125,7 @@ def main():
     # print(error_value)
     start = time.time()
     eng_vec = np.zeros(chromosome_length)
-    val = deterministic_ga(chromosome_length, 15, 15, eng_vec)
+    val = deterministic_ga(chromosome_length, 20, 250, eng_vec)
     print(eng_vec)
     print(f"{val[0]:.2f}")
     end = time.time()
@@ -157,9 +164,15 @@ def main():
 
 def array_to_dot(array, data):
     # Node features and values
-    temp_arr = array[:-8]
+    if number_of_tree_levels == 3:
+        temp_arr = array[:-8]
+    else:
+        temp_arr = array[:-16]
     # Leaf nodes- Fraud / Not-Fraud
-    classes = list(map(int, array[14:]))
+    if number_of_tree_levels == 3:
+        classes = list(map(int, array[14:]))
+    else:
+        classes = list(map(int, array[30:]))
     count = 0
     dot_str = 'digraph G {\n'
     dot_str += 'node [shape="box", style="filled, rounded", color="orange", fontname="helvetica"];\ngraph [ranksep=equally, splines=polyline];\nedge [fontname="helvetica"];\n'
@@ -181,11 +194,18 @@ def array_to_dot(array, data):
             if right_child_index <= len(temp_arr):
                 dot_str += f'    {count} -> {right_child_index};\n'
             count += 1
-    for i in range(7, len(classes) + 7):
-        if classes[i - 7] == 1:
-            dot_str += f'    {i} [label="Not-Fraud"]\n'
-        else:
-            dot_str += f'    {i} [label="Fraud", fillcolor="#74baed"]\n'
+    if number_of_tree_levels == 3:
+        for i in range(7, len(classes) + 7):
+            if classes[i - 7] == 1:
+                dot_str += f'    {i} [label="Not-Fraud"]\n'
+            else:
+                dot_str += f'    {i} [label="Fraud", fillcolor="#74baed"]\n'
+    else:
+        for i in range(15, len(classes) + 15):
+            if classes[i - 15] == 1:
+                dot_str += f'    {i} [label="Not-Fraud"]\n'
+            else:
+                dot_str += f'    {i} [label="Fraud", fillcolor="#74baed"]\n'
     # dot_str += '{rank=same ; 7; 8; 9; 10; 11; 12; 13; 14}\n'
     dot_str += '}'
     return dot_str
@@ -220,14 +240,14 @@ def estimate_prediction_error(pool, chromosome_length, person_tree, error_value)
     
     # error_value /= (number_of_runs)
     # error_value = (((imprecision / not_fraud) + (insensitivity / fraud)) / 2)
-    # error_value = 0.9*((0.1*(imprecision / not_fraud) + (insensitivity / fraud)) / 2) + (inacc / number_of_runs)
-    error_value = 0.6*((not_fraud - imprecision) / ((not_fraud - imprecision) + 0.5 *(insensitivity + imprecision))) + (inacc / number_of_runs)
+    error_value = 0.5* (((imprecision / not_fraud) + (insensitivity / fraud)) / 2)+ (inacc / number_of_runs)
+    # error_value = 1 - ((not_fraud - imprecision) / ((not_fraud - imprecision) + 0.5 *(insensitivity + imprecision))) # f1-score
     # error_value = inacc / number_of_runs
     # error_value = 0.4*(insensitivity / fraud) + (inacc / number_of_runs)
-    # error_value =  (insensitivity / fraud)
+    # error_value =  0.7*(insensitivity / fraud) + (inacc / number_of_runs)
     # print("Test", (imprecision / not_fraud), (insensitivity / fraud))
         
-    return (error_value, 0.6*((not_fraud - imprecision) / ((not_fraud - imprecision) + 0.5 *(insensitivity + imprecision))), (imprecision / not_fraud), (insensitivity / fraud))
+    return (error_value, 0.5* (((imprecision / not_fraud) + (insensitivity / fraud)) / 2), (imprecision / not_fraud), (insensitivity / fraud))
 
 def tree_model_predict(chromosome_length, individual_point, person_tree, prediction_category):
     prediction_categor = 0
@@ -276,6 +296,69 @@ def tree_model_predict(chromosome_length, individual_point, person_tree, predict
                     prediction_categor = person_tree[20]
                 else:
                     prediction_categor = person_tree[21]
+    if number_of_tree_levels == 4:
+        # Node 1
+        if individual_point[int(person_tree[0]) - 1] < person_tree[1]:
+            # Node 2
+            if individual_point[int(person_tree[2]) - 1] < person_tree[3]:
+                # Node 4
+                if individual_point[int(person_tree[6]) - 1] < person_tree[7]:
+                    # Node 8
+                    if individual_point[int(person_tree[14]) - 1] < person_tree[15]:
+                        prediction_categor = person_tree[30]
+                    else:
+                        prediction_categor = person_tree[31]
+                    # Node 9
+                else:
+                    if individual_point[int(person_tree[16]) - 1] < person_tree[17]:
+                        prediction_categor = person_tree[32]
+                    else:
+                        prediction_categor = person_tree[33]
+            # Node 5
+            else:
+                if individual_point[int(person_tree[8]) - 1] < person_tree[9]:
+                    # Node 10
+                    if individual_point[int(person_tree[18]) - 1] < person_tree[19]:
+                        prediction_categor = person_tree[34]
+                    else:
+                        prediction_categor = person_tree[35]
+                    # Node 11
+                else:
+                    if individual_point[int(person_tree[20]) - 1] < person_tree[21]:
+                        prediction_categor = person_tree[36]
+                    else:
+                        prediction_categor = person_tree[37]
+        # Node 3
+        else:
+            if individual_point[int(person_tree[4]) - 1] < person_tree[5]:
+                # Node 6
+                if individual_point[int(person_tree[10]) - 1] < person_tree[11]:
+                    # Node 12
+                    if individual_point[int(person_tree[22]) - 1] < person_tree[23]:
+                        prediction_categor = person_tree[38]
+                    else:
+                        prediction_categor = person_tree[39]
+                    # Node 13
+                else:
+                    if individual_point[int(person_tree[24]) - 1] < person_tree[25]:
+                        prediction_categor = person_tree[40]
+                    else:
+                        prediction_categor = person_tree[41]
+                # Node 7
+            else:
+                if individual_point[int(person_tree[12]) - 1] < person_tree[13]:
+                    # Node 14
+                    if individual_point[int(person_tree[26]) - 1] < person_tree[27]:
+                        prediction_categor = person_tree[42]
+                    else:
+                        prediction_categor = person_tree[43]
+                    # Node 15
+                else:
+                    if individual_point[int(person_tree[28]) - 1] < person_tree[29]:
+                        prediction_categor = person_tree[44]
+                    else:
+                        prediction_categor = person_tree[45]
+
 
     return prediction_categor
 
