@@ -125,7 +125,7 @@ def main():
     # print(error_value)
     start = time.time()
     eng_vec = np.zeros(chromosome_length)
-    val = deterministic_ga(chromosome_length, 20, 250, eng_vec)
+    val = deterministic_ga(chromosome_length, 20, 20, eng_vec)
     print(eng_vec)
     print(f"{val[0]:.2f}")
     end = time.time()
@@ -240,14 +240,14 @@ def estimate_prediction_error(pool, chromosome_length, person_tree, error_value)
     
     # error_value /= (number_of_runs)
     # error_value = (((imprecision / not_fraud) + (insensitivity / fraud)) / 2)
-    error_value = 0.5* (((imprecision / not_fraud) + (insensitivity / fraud)) / 2)+ (inacc / number_of_runs)
+    # error_value = 0.5* (((imprecision / not_fraud) + (insensitivity / fraud)) / 2)+ (inacc / number_of_runs)
     # error_value = 1 - ((not_fraud - imprecision) / ((not_fraud - imprecision) + 0.5 *(insensitivity + imprecision))) # f1-score
-    # error_value = inacc / number_of_runs
+    error_value = inacc / number_of_runs
     # error_value = 0.4*(insensitivity / fraud) + (inacc / number_of_runs)
     # error_value =  0.7*(insensitivity / fraud) + (inacc / number_of_runs)
     # print("Test", (imprecision / not_fraud), (insensitivity / fraud))
         
-    return (error_value, 0.5* (((imprecision / not_fraud) + (insensitivity / fraud)) / 2), (imprecision / not_fraud), (insensitivity / fraud))
+    return (error_value, 0, (imprecision / not_fraud), (insensitivity / fraud))
 
 def tree_model_predict(chromosome_length, individual_point, person_tree, prediction_category):
     prediction_categor = 0
@@ -467,8 +467,8 @@ def deterministic_ga(number_decision_variables, number_in_population, number_of_
             # Perform Bernoulli crossover to make children
             for j_index in range(number_decision_variables):
                 if random.random() < probability_bernoulli:
-                    first_child[j_index] = current_generation[first_parent_index, j_index]
-                    second_child[j_index] = current_generation[second_parent_index, j_index]
+                    first_child[j_index] = (current_generation[first_parent_index, j_index] + current_generation[second_parent_index, j_index]) / 2
+                    second_child[j_index] = (current_generation[first_parent_index, j_index] + current_generation[second_parent_index, j_index]) / 2
                 else:
                     second_child[j_index] = current_generation[first_parent_index, j_index]
                     first_child[j_index] = current_generation[second_parent_index, j_index]
