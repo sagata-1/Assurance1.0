@@ -18,13 +18,14 @@ for _ in range(3):
     oversampled_fraud = pd.concat([oversampled_fraud, oversampled_fraud], ignore_index=True)
 oversampled_fraud = pd.concat([oversampled_fraud, inputData[inputData["PotentialFraud"] == "Fraud"]], ignore_index=True)
 inputData = pd.concat([inputData, oversampled_fraud], ignore_index=True)
-inputData = pd.concat([inputData, inputData], ignore_index=True)
+# inputData = pd.concat([inputData, inputData], ignore_index=True)
 
 # Large value, should be larger than anything objective function can hit
 large_value = 1000000000
 
 # Global variables
-number_of_features = 48
+number_of_features = len(inputData.columns) - 1
+print(number_of_features)
 number_of_runs = len(inputData.index)
 print(number_of_runs)
 number_of_classes = 2
@@ -50,9 +51,9 @@ def main():
     global number_of_features
     # Read in the data
     dict_conversion = {"Not-Fraud": 1, "Fraud": 2}
-    reverse_conversion = {1: "Not-Fraud", 2: "Fraud"}
+    reverse_conversion = {1:"Not-Fraud" , 2: "Fraud"}
     for i in range(number_of_runs):
-        response_categories[i] = dict_conversion[inputData.iloc[i, 48]]
+        response_categories[i] = dict_conversion[inputData.iloc[i, number_of_features]]
         for j in range(number_of_features):
             feature_data[i, j] = inputData.iloc[i, j]
     # Calculate mins and maxes for the features
@@ -61,54 +62,54 @@ def main():
         max_feature_value[j] = np.max(feature_data[:, j])
     
     # Preprocess classes for fitting into 0 - 1 instead of 1 - 2
-    y = np.zeros(number_of_runs)
-    for i in range(number_of_runs):
-        y[i] = int(response_categories[i] - 1)
-    # Split data for xgboost feature selection
-    X_train, X_test, y_train, y_test = train_test_split(feature_data, y, test_size=0.2, random_state=7)
-    # Feature selection with xgboost
-    model = XGBClassifier()
-    model.fit(X_train, y_train)
-    y_pred = model.predict(X_test)
-    predictions = [round(value) for value in y_pred]    
-    accuracy = accuracy_score(y_test, predictions)
-    print("Accuracy: %.2f%%" % (accuracy * 100.0))  
+    # y = np.zeros(number_of_runs)
+    # for i in range(number_of_runs):
+    #     y[i] = int(response_categories[i] - 1)
+    # # Split data for xgboost feature selection
+    # X_train, X_test, y_train, y_test = train_test_split(feature_data, y, test_size=0.2, random_state=7)
+    # # Feature selection with xgboost
+    # model = XGBClassifier()
+    # model.fit(X_train, y_train)
+    # y_pred = model.predict(X_test)
+    # predictions = [round(value) for value in y_pred]    
+    # accuracy = accuracy_score(y_test, predictions)
+    # print("Accuracy: %.2f%%" % (accuracy * 100.0))  
     
-    thresholds = sort(model.feature_importances_)
-    max_acc = -1
-    true_thresh = -1
-    for thresh in thresholds:
-        selection = SelectFromModel(model, threshold=thresh, prefit=True)
-        select_X_train = selection.transform(X_train)
+    # thresholds = sort(model.feature_importances_)
+    # max_acc = -1
+    # true_thresh = -1
+    # for thresh in thresholds:
+    #     selection = SelectFromModel(model, threshold=thresh, prefit=True)
+    #     select_X_train = selection.transform(X_train)
         
-        selection_model = XGBClassifier()
-        selection_model.fit(select_X_train, y_train)
+    #     selection_model = XGBClassifier()
+    #     selection_model.fit(select_X_train, y_train)
         
-        select_X_test = selection.transform(X_test)
-        y_pred = selection_model.predict(select_X_test)
+    #     select_X_test = selection.transform(X_test)
+    #     y_pred = selection_model.predict(select_X_test)
         
-        predictions = [round(value) for value in y_pred]
+    #     predictions = [round(value) for value in y_pred]
         
-        accuracy = accuracy_score(y_test, predictions)
-        if accuracy >= max_acc:
-            max_acc = accuracy
-            true_thresh = thresh
-        print("Thresh=%.3f, n=%d, Accuracy: %.2f%%" % (thresh, select_X_train.shape[1], accuracy*100.0))
-    selection = SelectFromModel(model, threshold=true_thresh, prefit=True)
-    feature_data = selection.transform(feature_data)
-    # selection_model = XGBClassifier()
-    # selection_model.fit(feature_data, y)
-    # y_pred = selection_model.predict(feature_data)
-    # predictions = [round(value) for value in y_pred]
-    # inputData["Predictions"] = predictions
-    # result = inputData[["PotentialFraud", "Predictions"]]
-    # result.to_csv("predictions.csv", sep=',', index=False, encoding='utf-8')
-    names = []
-    for i in range(len(model.feature_importances_)):
-        if model.feature_importances_[i] >= true_thresh:
-            names.append(inputData.iloc[:, [i]].columns[0])
-    print(len(names))
-    number_of_features = len(names)
+    #     accuracy = accuracy_score(y_test, predictions)
+    #     if accuracy >= max_acc:
+    #         max_acc = accuracy
+    #         true_thresh = thresh
+    #     print("Thresh=%.3f, n=%d, Accuracy: %.2f%%" % (thresh, select_X_train.shape[1], accuracy*100.0))
+    # selection = SelectFromModel(model, threshold=true_thresh, prefit=True)
+    # feature_data = selection.transform(feature_data)
+    # # selection_model = XGBClassifier()
+    # # selection_model.fit(feature_data, y)
+    # # y_pred = selection_model.predict(feature_data)
+    # # predictions = [round(value) for value in y_pred]
+    # # inputData["Predictions"] = predictions
+    # # result = inputData[["PotentialFraud", "Predictions"]]
+    # # result.to_csv("predictions.csv", sep=',', index=False, encoding='utf-8')
+    # names = []
+    # for i in range(len(model.feature_importances_)):
+    #     if model.feature_importances_[i] >= true_thresh:
+    #         names.append(inputData.iloc[:, [i]].columns[0])
+    # print(len(names))
+    # number_of_features = len(names)
 
     # # Define chromosomeVec and individualPoint with example values
     # chromosome_vec = np.array([0.7, 0.338, 0.9, 0.7, 0.8, 0.7, 0.1, 0.1, 0.5, 0.8])  # Example values
@@ -240,14 +241,14 @@ def estimate_prediction_error(pool, chromosome_length, person_tree, error_value)
     
     # error_value /= (number_of_runs)
     # error_value = (((imprecision / not_fraud) + (insensitivity / fraud)) / 2)
-    # error_value = 0.5* (((imprecision / not_fraud) + (insensitivity / fraud)) / 2)+ (inacc / number_of_runs)
+    error_value = 0.3* (((imprecision / not_fraud) + (insensitivity / fraud)) / 2)+ (inacc / number_of_runs)
     # error_value = 1 - ((not_fraud - imprecision) / ((not_fraud - imprecision) + 0.5 *(insensitivity + imprecision))) # f1-score
-    error_value = inacc / number_of_runs
+    # error_value = inacc / number_of_runs
     # error_value = 0.4*(insensitivity / fraud) + (inacc / number_of_runs)
     # error_value =  0.7*(insensitivity / fraud) + (inacc / number_of_runs)
     # print("Test", (imprecision / not_fraud), (insensitivity / fraud))
         
-    return (error_value, 0, (imprecision / not_fraud), (insensitivity / fraud))
+    return (error_value, 0.3* (((imprecision / not_fraud) + (insensitivity / fraud)) / 2), (imprecision / not_fraud), (insensitivity / fraud))
 
 def tree_model_predict(chromosome_length, individual_point, person_tree, prediction_category):
     prediction_categor = 0
