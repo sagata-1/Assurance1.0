@@ -12,7 +12,7 @@ from sklearn.feature_selection import SelectFromModel
 import graphviz
 
 # Assuming that inputData is a pandas DataFrame that contains the required data
-inputData = pd.read_csv("~/Downloads/creditcard.csv").iloc[:5000, :]
+inputData = pd.read_csv("creditcard.csv").iloc[:5000, :]
 oversampled_fraud = inputData[inputData["Class"] == 1]
 for _ in range(3):
     oversampled_fraud = pd.concat([oversampled_fraud, oversampled_fraud], ignore_index=True)
