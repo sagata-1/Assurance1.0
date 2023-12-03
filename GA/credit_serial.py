@@ -13,6 +13,7 @@ import graphviz
 
 # Assuming that inputData is a pandas DataFrame that contains the required data
 inputData = pd.read_csv("~/Downloads/creditcard.csv").iloc[:5000, :]
+testData = pd.read_csv("~/Downloads/creditcard.csv").iloc[5001:15055, :]
 oversampled_fraud = inputData[inputData["Class"] == 1]
 for _ in range(3):
     oversampled_fraud = pd.concat([oversampled_fraud, oversampled_fraud], ignore_index=True)
@@ -28,6 +29,7 @@ number_of_features = len(inputData.columns) - 1
 print(number_of_features)
 number_of_runs = len(inputData.index)
 print(number_of_runs)
+print(len(testData.index))
 number_of_classes = 2
 number_of_tree_levels = 3
 number_of_nodes = 1 + sum(2 ** i for i in range(1, number_of_tree_levels))
@@ -38,6 +40,7 @@ person_tree = np.zeros(chromosome_length)
 
 # Initialize arrays and variables
 feature_data = np.zeros((number_of_runs, number_of_features))
+test_feature = np.zeros((number_of_runs, number_of_features))
 min_feature_value = np.zeros(number_of_features)
 max_feature_value = np.zeros(number_of_features)
 response_categories = np.zeros(number_of_runs)
@@ -56,6 +59,7 @@ def main():
         response_categories[i] = dict_conversion[inputData.iloc[i, number_of_features]]
         for j in range(number_of_features):
             feature_data[i, j] = inputData.iloc[i, j]
+            test_feature[i, j] = testData.iloc[i, j]
     # Calculate mins and maxes for the features
     for j in range(number_of_features):
         min_feature_value[j] = np.min(feature_data[:, j])
@@ -126,7 +130,7 @@ def main():
     # print(error_value)
     start = time.time()
     eng_vec = np.zeros(chromosome_length)
-    val = deterministic_ga(chromosome_length, 100, 100, eng_vec)
+    val = deterministic_ga(chromosome_length, 40, 30, eng_vec)
     print(eng_vec)
     print(f"{val[0]:.2f}")
     end = time.time()
@@ -143,11 +147,11 @@ def main():
     # Make predictions and append them to the pandas dataframe and store it in a new file
     predictions = []
     for i in range(number_of_runs):
-        predictions.append(reverse_conversion[int(tree_model_predict(chromosome_length,feature_data[i, :], eng_vec, prediction_category))])
+        predictions.append(reverse_conversion[int(tree_model_predict(chromosome_length, test_feature[i, :], eng_vec, prediction_category))])
     # print(predictions)
-    inputData["Predictions"] = predictions
-    result = inputData[["Class", "Predictions"]]
-    accuracy = accuracy_score(inputData["Class"], inputData["Predictions"])
+    testData["Predictions"] = predictions
+    result = testData[["Class", "Predictions"]]
+    accuracy = accuracy_score(testData["Class"], testData["Predictions"])
     print("Final Accuracy:", accuracy)
     print("Not-Fraud and Fraud incorrect proportions", val[1])
     result.to_csv("predictions.csv", sep=',', index=False, encoding='utf-8')
